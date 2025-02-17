@@ -1,0 +1,43 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <StaffNavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4 d-flex align-items-center justify-content-end">
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle p-0 border-0" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="https://placehold.co/48" class="rounded-circle border shadow-sm" alt="User Avatar" />
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2" aria-labelledby="userMenu" style="background-color: #f5f5f5;">
+                    <li class="py-2 text-center">
+                        <strong class="d-block">Nguyen Van A</strong>
+                        <small class="text-muted">STAFF</small>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li class="d-flex justify-content-center" style="margin-left: 0; padding-left: 0;">
+                        <button class="dropdown-item py-2 text-center" style="border: none; background: transparent; width: 100%;">👤 Profile</button>
+                    </li>
+                    <li class="d-flex justify-content-center" style="margin-left: 0; padding-left: 0;">
+                        <button class="dropdown-item py-2 text-center text-danger" style="border: none; background: transparent; width: 100%;">🚪 Logout</button>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+

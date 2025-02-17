@@ -1,0 +1,121 @@
+﻿@page "/manage-vaccine"
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@layout FinalProject.Components.Layout.StaffLayout
+
+<h3>Manage Vaccine</h3>
+
+<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <div class="input-group w-50">
+        <input type="text" class="form-control" placeholder="Search vaccine..." @bind="SearchTerm" />
+        <button class="btn btn-outline-secondary" @onclick="SearchVaccine">🔍</button>
+    </div>
+    <button class="btn btn-primary" @onclick="AddVaccine">Add New Vaccine</button>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Min Age</th>
+            <th>Max Age</th>
+            <th>Price</th>
+            <th>Date Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (FilteredVaccines.Count == 0)
+        {
+            <tr>
+                <td colspan="7" class="text-center">No vaccines found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var vaccine in FilteredVaccines)
+            {
+                <tr>
+                    <td>@vaccine.Id</td>
+                    <td>@vaccine.Name</td>
+                    <td>@vaccine.Description</td>
+                    <td>@vaccine.MinAgeToUse months</td>
+                    <td>@(vaccine.MaxAgeToUse)</td>
+                    <td>@($"{vaccine.Price:C}")</td>
+                    <td>@vaccine.DateCreated.ToShortDateString()</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" @onclick="() => EditVaccine(vaccine.Id)">✏️ Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteVaccine(vaccine.Id)">🗑 Delete</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private string SearchTerm { get; set; } = "";
+    private List<Vaccine> AllVaccines = new();
+    private List<Vaccine> FilteredVaccines = new();
+
+    protected override void OnInitialized()
+    {
+        LoadVaccines();
+    }
+
+    private void LoadVaccines()
+    {
+        AllVaccines = new List<Vaccine>
+        {
+            new Vaccine { Id = 1, Name = "Pfizer", Description = "COVID-19 vaccine", MinAgeToUse = 12, MaxAgeToUse = 16, Price = 15.99m, DateCreated = DateTime.Now },
+            new Vaccine { Id = 2, Name = "Moderna", Description = "COVID-19 vaccine", MinAgeToUse = 12, MaxAgeToUse = 16, Price = 18.50m, DateCreated = DateTime.Now },
+            new Vaccine { Id = 3, Name = "BCG", Description = "Tuberculosis vaccine", MinAgeToUse = 0, MaxAgeToUse = 16, Price = 5.00m, DateCreated = DateTime.Now }
+        };
+
+        FilteredVaccines = new List<Vaccine>(AllVaccines);
+    }
+
+    private void SearchVaccine()
+    {
+        try
+        {
+
+            if (string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                FilteredVaccines = new List<Vaccine>(AllVaccines);
+            }
+            else
+            {
+                FilteredVaccines = AllVaccines
+                    .Where(v => v.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SearchVaccine Error: {ex.Message}");
+        }
+    }
+
+
+    private void AddVaccine()
+    {
+        NavigationManager.NavigateTo("/add-vaccine");
+    }
+
+    private void EditVaccine(int id)
+    {
+        NavigationManager.NavigateTo($"/edit-vaccine?id={id}");
+    }
+
+    private void DeleteVaccine(int id)
+    {
+        AllVaccines = AllVaccines.Where(v => v.Id != id).ToList();
+        FilteredVaccines = AllVaccines.ToList();
+        StateHasChanged();
+    }
+}
