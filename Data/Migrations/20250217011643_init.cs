@@ -138,8 +138,7 @@ namespace Data.Migrations
                         name: "FK_Appointments_Children_ChildId",
                         column: x => x.ChildId,
                         principalTable: "Children",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Appointments_Users_CustomerId",
                         column: x => x.CustomerId,
@@ -215,7 +214,8 @@ namespace Data.Migrations
                         name: "FK_AppointmentDetails_Users_DoctorId",
                         column: x => x.DoctorId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -242,7 +242,8 @@ namespace Data.Migrations
                         name: "FK_Feedbacks_Users_CustomerId",
                         column: x => x.CustomerId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(

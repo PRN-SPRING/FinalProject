@@ -360,24 +360,23 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Entities.Appointment", b =>
                 {
                     b.HasOne("Data.Entities.Child", "Child")
-                        .WithMany()
+                        .WithMany("Appointments")
                         .HasForeignKey("ChildId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Data.Entities.User", "Customer")
-                        .WithMany()
+                        .WithMany("Appointments")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Data.Entities.Vaccine", "Vaccine")
-                        .WithMany()
-                        .HasForeignKey("VaccineId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .WithMany("Appointments")
+                        .HasForeignKey("VaccineId");
 
                     b.HasOne("Data.Entities.VaccinePackage", "VaccinePackage")
-                        .WithMany()
+                        .WithMany("Appointments")
                         .HasForeignKey("VaccinePackageId")
                         .OnDelete(DeleteBehavior.NoAction);
 
@@ -393,15 +392,15 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Entities.AppointmentDetail", b =>
                 {
                     b.HasOne("Data.Entities.Appointment", "Appointment")
-                        .WithMany()
+                        .WithMany("AppointmentDetails")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Data.Entities.User", "Doctor")
-                        .WithMany()
+                        .WithMany("AppointmentDetails")
                         .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Appointment");
@@ -412,7 +411,7 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Entities.Child", b =>
                 {
                     b.HasOne("Data.Entities.User", "Customer")
-                        .WithMany()
+                        .WithMany("Children")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -423,15 +422,15 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Entities.Feedback", b =>
                 {
                     b.HasOne("Data.Entities.Appointment", "Appointment")
-                        .WithMany()
+                        .WithMany("Feedbacks")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Data.Entities.User", "Customer")
-                        .WithMany()
+                        .WithMany("Feedbacks")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Appointment");
@@ -442,7 +441,7 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Entities.Payment", b =>
                 {
                     b.HasOne("Data.Entities.Appointment", "Appointment")
-                        .WithMany()
+                        .WithMany("Payments")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -453,17 +452,17 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Entities.VaccinationSchedule", b =>
                 {
                     b.HasOne("Data.Entities.Child", "Child")
-                        .WithMany()
+                        .WithMany("VaccinationSchedules")
                         .HasForeignKey("ChildId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Data.Entities.Vaccine", "Vaccine")
-                        .WithMany()
+                        .WithMany("VaccinationSchedules")
                         .HasForeignKey("VaccineId");
 
                     b.HasOne("Data.Entities.VaccinePackage", "VaccinePackage")
-                        .WithMany()
+                        .WithMany("VaccinationSchedules")
                         .HasForeignKey("VaccinePackageId");
 
                     b.Navigation("Child");
@@ -476,13 +475,13 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Entities.VaccinePackageDetail", b =>
                 {
                     b.HasOne("Data.Entities.VaccinePackage", "Package")
-                        .WithMany()
+                        .WithMany("PackageDetails")
                         .HasForeignKey("PackageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Data.Entities.Vaccine", "Vaccine")
-                        .WithMany()
+                        .WithMany("VaccinePackageDetails")
                         .HasForeignKey("VaccineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -490,6 +489,51 @@ namespace Data.Migrations
                     b.Navigation("Package");
 
                     b.Navigation("Vaccine");
+                });
+
+            modelBuilder.Entity("Data.Entities.Appointment", b =>
+                {
+                    b.Navigation("AppointmentDetails");
+
+                    b.Navigation("Feedbacks");
+
+                    b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("Data.Entities.Child", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("VaccinationSchedules");
+                });
+
+            modelBuilder.Entity("Data.Entities.User", b =>
+                {
+                    b.Navigation("AppointmentDetails");
+
+                    b.Navigation("Appointments");
+
+                    b.Navigation("Children");
+
+                    b.Navigation("Feedbacks");
+                });
+
+            modelBuilder.Entity("Data.Entities.Vaccine", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("VaccinationSchedules");
+
+                    b.Navigation("VaccinePackageDetails");
+                });
+
+            modelBuilder.Entity("Data.Entities.VaccinePackage", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("PackageDetails");
+
+                    b.Navigation("VaccinationSchedules");
                 });
 #pragma warning restore 612, 618
         }

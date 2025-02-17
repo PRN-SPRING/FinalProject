@@ -16,6 +16,10 @@ namespace Data.Entities
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
         public decimal Price { get; set; }
+        public ICollection<VaccinePackageDetail>? PackageDetails { get; set; }
+        public ICollection<Appointment>? Appointments { get; set; }
+        public ICollection<VaccinationSchedule>? VaccinationSchedules{ get; set; }
+
     }
 }
 

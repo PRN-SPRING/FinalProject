@@ -18,6 +18,8 @@ namespace Data.Entities
         public DateTime Birthdate { get; set; }
         public string? Gender { get; set; }
         public User Customer { get; set; } = null!;
+        public ICollection<VaccinationSchedule>? VaccinationSchedules { get; set; }
+        public ICollection<Appointment>? Appointments { get; set; }
     }
 
 }
