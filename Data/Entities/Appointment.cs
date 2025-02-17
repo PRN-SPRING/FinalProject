@@ -24,6 +24,9 @@ namespace Data.Entities
         public Child Child { get; set; } = null!;
         public Vaccine? Vaccine { get; set; }
         public VaccinePackage? VaccinePackage { get; set; }
+        public ICollection<AppointmentDetail>? AppointmentDetails { get; set; }
+        public ICollection<Payment>? Payments { get; set; }
+        public ICollection<Feedback>? Feedbacks { get; set; }
     }
 
 }

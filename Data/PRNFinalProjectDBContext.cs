@@ -29,56 +29,23 @@ namespace Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Prevents cascade delete for Users to avoid accidental deletions
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Customer)
-                .WithMany()
+                .WithMany(u => u.Appointments)
                 .HasForeignKey(a => a.CustomerId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction); // Prevents multiple cascade paths
 
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Child)
-                .WithMany()
+                .WithMany(c => c.Appointments)
                 .HasForeignKey(a => a.ChildId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.Vaccine)
-                .WithMany()
-                .HasForeignKey(a => a.VaccineId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction); // Prevents multiple cascade paths
 
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.VaccinePackage)
-                .WithMany()
+                .WithMany(p => p.Appointments)
                 .HasForeignKey(a => a.VaccinePackageId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Fix multiple cascade paths issue for AppointmentDetail
-            modelBuilder.Entity<AppointmentDetail>()
-                .HasOne(ad => ad.Appointment)
-                .WithMany()
-                .HasForeignKey(ad => ad.AppointmentId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<AppointmentDetail>()
-                .HasOne(ad => ad.Doctor)
-                .WithMany()
-                .HasForeignKey(ad => ad.DoctorId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Fix multiple cascade paths issue for Feedback
-            modelBuilder.Entity<Feedback>()
-                .HasOne(f => f.Appointment)
-                .WithMany()
-                .HasForeignKey(f => f.AppointmentId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Feedback>()
-                .HasOne(f => f.Customer)
-                .WithMany()
-                .HasForeignKey(f => f.CustomerId)
-                .OnDelete(DeleteBehavior.NoAction); // Prevent cascade delete
+                .OnDelete(DeleteBehavior.NoAction); // Prevents multiple cascade paths
         }
 
     }

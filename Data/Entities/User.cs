@@ -26,6 +26,10 @@ namespace Data.Entities
         public string? LicenseNumber { get; set; }
         public string? Position { get; set; }
         public int? YearsOfExperience { get; set; }
+        public ICollection<Child>? Children { get; set; }
+        public ICollection<Appointment>? Appointments { get; set; }
+        public ICollection<AppointmentDetail>? AppointmentDetails { get; set; } //for doctor
+        public ICollection<Feedback>? Feedbacks { get; set; } //for user
     }
 
 }

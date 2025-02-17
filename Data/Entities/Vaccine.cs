@@ -18,5 +18,10 @@ namespace Data.Entities
         public int MinAgeToUse { get; set; }
         public int? MaxAgeToUse { get; set; }
         public decimal Price { get; set; }
+        public ICollection<VaccinePackageDetail>? VaccinePackageDetails { get; set; }
+        public ICollection<VaccinationSchedule>? VaccinationSchedules{ get; set; }
+        public ICollection<Appointment>? Appointments{ get; set; }
+        
     }
+
 }
