@@ -1,171 +1,100 @@
-﻿@layout FinalProject.Components.Layout.LoginLayout
+﻿@layout FinalProject.Components.Layout.LoginLayout;
 @page "/register"
-@using System.ComponentModel.DataAnnotations
-<h3>Register</h3>
+@using Repository.Interface
+@inject IUserRepository UserRepository
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
 
-<div class="login-container">
-    <div class="login-box">
-        <EditForm Model="registrationModel" OnValidSubmit="HandleRegister">
+<div class="register-container">
+    <div class="register-box">
+        <h2>Register</h2>
+        <EditForm Model="registerModel" OnValidSubmit="HandleRegistration">
             <DataAnnotationsValidator />
-            <ValidationSummary />
-
+            
             <div class="form-group">
                 <label>Username:</label>
-                <InputText @bind-Value="registrationModel.Username" class="form-control" />
-                <ValidationMessage For="@(() => registrationModel.Username)" />
+                <InputText @bind-Value="username" class="form-control" />
             </div>
 
             <div class="form-group">
                 <label>Password:</label>
-                <InputText @bind-Value="registrationModel.Password" type="password" class="form-control" />
-                <ValidationMessage For="@(() => registrationModel.Password)" />
+                <InputText @bind-Value="password" type="password" class="form-control" />
             </div>
 
             <div class="form-group">
                 <label>Full Name:</label>
-                <InputText @bind-Value="registrationModel.FullName" class="form-control" />
-                <ValidationMessage For="@(() => registrationModel.FullName)" />
+                <InputText @bind-Value="fullName" class="form-control" />
             </div>
 
             <div class="form-group">
                 <label>Email:</label>
-                <InputText @bind-Value="registrationModel.Email" type="email" class="form-control" />
-                <ValidationMessage For="@(() => registrationModel.Email)" />
+                <InputText @bind-Value="email" type="email" class="form-control" />
             </div>
 
             <div class="form-group">
                 <label>Phone Number:</label>
-                <InputText @bind-Value="registrationModel.PhoneNumber" class="form-control" />
+                <InputText @bind-Value="phoneNumber" class="form-control" />
             </div>
 
             <div class="form-group">
                 <label>Address:</label>
-                <InputText @bind-Value="registrationModel.Address" class="form-control" />
+                <InputText @bind-Value="address" class="form-control" />
             </div>
 
             <div class="form-group">
                 <label>Gender:</label>
-                <InputSelect @bind-Value="registrationModel.Gender" class="form-control">
-                    <option value="">Select</option>
+                <InputSelect @bind-Value="gender" class="form-control">
+                    <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                 </InputSelect>
             </div>
 
             <div class="form-group">
-                <label for="dob" class="form-label">Date of Birth:</label>
-                <Microsoft.AspNetCore.Components.Forms.InputDate @bind-Value="registrationModel.Birthdate" class="form-control" id="dob" placeholder="Select your date of birth"></Microsoft.AspNetCore.Components.Forms.InputDate>
+                <label>Birthdate:</label>
+                <InputDate @bind-Value="birthdate" class="form-control" />
             </div>
 
-            <button type="submit" class="btn btn-primary mt-3">Register</button>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">@errorMessage</div>
+            }
+
+            <button type="submit" class="btn-register">Register</button>
         </EditForm>
     </div>
 </div>
 
-@if (message is not null)
-{
-    <p class="text-success">@message</p>
-}
-
-<style>
-     .register-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background-color: #f5f5f5;
-        padding: 2rem 0;
-    }
-
-    .register-box {
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 500px;
-    }
-
- .form-group {
-        margin-bottom: 1.2rem;
-    }
-
-   .form-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: #333;
-    }
-
-.form-control {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        margin-bottom: 0.5rem;
-    }
-
- .validation-message {
-        color: #dc3545;
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-    }
-
- .btn-primary {
-        width: 100%;
-        padding: 0.75rem;
-        background-color: #0d6efd;
-        border: none;
-        border-radius: 4px;
-        color: white;
-        cursor: pointer;
-        margin-top: 1rem;
-    }
-
- .btn-primary:hover {
-            background-color: #0b5ed7;
-        }
-
-.validation-summary {
-        color: #dc3545;
-        margin-bottom: 1rem;
-        padding: 1rem;
-        background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
-        border-radius: 4px;
-    }
-
-</style>
-
 @code {
-    private RegistrationModel registrationModel = new();
-    private string? message;
+    private string username = string.Empty;
+    private string password = string.Empty;
+    private string fullName = string.Empty;
+    private string email = string.Empty;
+    private string? phoneNumber;
+    private string? address;
+    private string? gender;
+    private DateTime? birthdate;
+    private string? errorMessage;
+    
+    // Dummy model for EditForm
+    private object registerModel = new();
 
-    private void HandleRegister()
+    private async Task HandleRegistration()
     {
-        message = $"User {registrationModel.Username} registered successfully!";
-        Console.WriteLine(message);
-    }
+        try
+        {
+            await UserRepository.CreateUserAsync(username,password,fullName,email,phoneNumber,address,gender,birthdate);
 
-    public class RegistrationModel
-    {
-        [Required, MinLength(3)]
-        public string Username { get; set; } = null!;
-
-        [Required, MinLength(6)]
-        public string Password { get; set; } = null!;
-
-        [Required]
-        public string FullName { get; set; } = null!;
-
-        [Required, EmailAddress]
-        public string Email { get; set; } = null!;
-
-        public string? PhoneNumber { get; set; }
-        public string? Address { get; set; }
-        public string? Gender { get; set; }
-
-        [Required]
-        public DateTime? Birthdate { get; set; }
+            NavigationManager.NavigateTo("/login");
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Username already exists"))
+        {
+            errorMessage = "Username has already been taken";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred during registration";
+            Console.WriteLine(ex.Message);
+        }
     }
 }

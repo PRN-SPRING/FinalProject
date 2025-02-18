@@ -41,7 +41,7 @@
 
     <div class="mb-3">
         <label for="dateCreated" class="form-label">Date Created</label>
-        <InputDate class="form-control" id="dateCreated" @bind-Value="vaccine.DateCreated" />
+        <Microsoft.AspNetCore.Components.Forms.InputDate class="form-control" id="dateCreated" @bind-Value="vaccine.DateCreated" />
         <ValidationMessage For="() => vaccine.DateCreated" class="text-danger" />
     </div>
 

@@ -89,7 +89,7 @@
                     <EditForm Model="@newVaccinationSchedule" OnValidSubmit="@SaveVaccinationSchedule">
                         <div class="form-group">
                             <label for="scheduledDate">Scheduled Date:</label>
-                            <InputDate id="scheduledDate" @bind-value="newVaccinationSchedule.ScheduledDate" class="form-control" />
+                            <Microsoft.AspNetCore.Components.Forms.InputDate id="scheduledDate" @bind-value="newVaccinationSchedule.ScheduledDate" class="form-control" />
                             <ValidationMessage For="@(() => newVaccinationSchedule.ScheduledDate)" />
                         </div>
 

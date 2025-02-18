@@ -2,6 +2,8 @@ using Data;
 using FinalProject.Components;
 using Microsoft.EntityFrameworkCore;
 using Repository;
+using Repository.Interface;
+using Repository.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 

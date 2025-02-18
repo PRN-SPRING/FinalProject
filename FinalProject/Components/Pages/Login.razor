@@ -1,5 +1,9 @@
 ﻿@layout FinalProject.Components.Layout.LoginLayout
 @page "/login"
+@using Repository.Interface;
+@inject NavigationManager Navigation;
+@inject IUserRepository UserRepository;
+@rendermode InteractiveServer
 
 <div class="login-container">
     <div class="login-box">
@@ -10,7 +14,14 @@
         <div class="form-group">
             <input type="password" class="form-control" placeholder="Password" @bind="password" />
         </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-message">@errorMessage</div>
+        }
+
         <button class="btn btn-primary" @onclick="HandleLogin">Login</button>
+
         <div class="register-link">
             <a href="/register">No account? Register</a>
         </div>
@@ -19,76 +30,101 @@
 
 <style>
     .login-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background-color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f5f5f5;
     }
 
     .login-box {
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 400px;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
     }
 
     h2 {
-        text-align: center;
-        margin-bottom: 1.5rem;
-        color: #333;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
     }
 
     .form-group {
-        margin-bottom: 1rem;
+    margin-bottom: 1rem;
     }
 
     .form-control {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        margin-bottom: 1rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 1rem;
     }
 
     .btn-primary {
-        width: 100%;
-        padding: 0.75rem;
-        background-color: #0d6efd;
-        border: none;
-        border-radius: 4px;
-        color: white;
-        cursor: pointer;
-        margin-bottom: 1rem;
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #0d6efd;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    margin-bottom: 1rem;
     }
 
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-        }
+    .btn-primary:hover {
+    background-color: #0b5ed7;
+    }
 
     .register-link {
-        text-align: center;
+    text-align: center;
     }
 
-        .register-link a {
-            color: #0d6efd;
-            text-decoration: none;
-        }
+    .register-link a {
+    color: #0d6efd;
+    text-decoration: none;
+    }
 
-            .register-link a:hover {
-                text-decoration: underline;
-            }
+    .register-link a:hover {
+    text-decoration: underline;
+    }
+
+    .error-message {
+    color: red;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    }
 </style>
 
 @code {
     private string username = "";
     private string password = "";
+    private string errorMessage = "";
 
     private async Task HandleLogin()
     {
-        // Add your login logic here
-        Console.WriteLine($"Login attempted with username: {username}");
+        Console.WriteLine("MMB");
+        try
+        {
+            var isAuthenticated = await UserRepository.AuthenticateAsync(username, password);
+            if (isAuthenticated)
+            {
+                Navigation.NavigateTo("/home");
+            }
+            else
+            {
+                errorMessage = "Wrong username or password";
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred during login";
+            StateHasChanged();
+        }
     }
 }

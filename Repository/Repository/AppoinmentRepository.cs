@@ -9,5 +9,6 @@ namespace Repository.Repository
 {
     public class AppoinmentRepository: IAppoinmentRepository
     {
+
     }
 }
