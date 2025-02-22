@@ -1,0 +1,191 @@
+﻿@page "/manage-vaccines"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Data.Entities
+@using Data
+@using Repository
+@inject IVaccineRepository VaccineRepository
+@layout FinalProject.Components.Layout.StaffLayout
+@rendermode InteractiveServer
+
+<PageTitle>Manage Vaccines</PageTitle>
+
+<style>
+    .table-container {
+        max-height: 500px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+        .table th, .table td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.075);
+    }
+
+    .btn {
+        margin: 2px;
+    }
+
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn:hover {
+        opacity: 0.8;
+    }
+
+    /* .container { */
+    /*     padding: 20px; */
+    /* } */
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    p {
+        margin-bottom: 15px;
+    }
+
+        @@media(max - width: 768px) {
+            .table-container {
+                max-height: 300px;
+            }
+
+            .btn-sm {
+                padding: 3px 6px;
+                font-size: 12px;
+            }
+        }
+    </style>
+
+    <div>
+        <h2 class="mb-4">Vaccines Management</h2>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search vaccines..." @bind="searchQuery" @oninput="SearchVaccines" />
+                    <button class="btn btn-outline-secondary" type="button" @onclick="SearchVaccines">
+                        <i class="fas fa-search"></i> <!-- Icon tìm kiếm (Font Awesome) -->
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <a href="vaccines/create" class="btn btn-success">Create New Vaccine</a>
+            </div>
+        </div>
+
+        <div class="table-container">
+            @if (filteredVaccines.Any())
+            {
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Vaccine Name</th>
+                            <th>Description</th>
+                            <th>Min Age</th>
+                            <th>Max Age</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var vaccine in filteredVaccines)
+                        {
+                            <tr>
+                                <td>@vaccine.Name</td>
+                                <td>
+                                    @(vaccine.Description.Length > 100 ? vaccine.Description.Substring(0, 100) + "..." : vaccine.Description)
+                                </td>
+                                <td>@vaccine.MinAgeToUse</td>
+                                <td>@vaccine.MaxAgeToUse</td>
+                                <td>@vaccine.Price</td>
+                                <td>
+                                    <a href="@($"vaccines/edit?id={vaccine.Id}")" class="btn btn-primary btn-sm">Edit</a> |
+                                    <a href="@($"vaccines/details?id={vaccine.Id}")" class="btn btn-info btn-sm">Details</a> |
+                                    <a href="@($"vaccines/delete?id={vaccine.Id}")" class="btn btn-danger btn-sm">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="d-flex flex-column align-items-center justify-content-center p-4 bg-light rounded" style="min-height: 200px;">
+                    <i class="fas fa-syringe fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No vaccines found</h5>
+                    <p class="text-muted">Try adjusting your search criteria or add a new vaccine.</p>
+                </div>
+            }
+    </div>
+</div>
+
+@code {
+    private PRNFinalProjectDBContext context = default!;
+    private string searchQuery = string.Empty;
+    private List<Vaccine> allVaccines = new();
+    private List<Vaccine> filteredVaccines = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        allVaccines = (await VaccineRepository.GetVaccinesAsync()).ToList();
+        filteredVaccines = allVaccines;
+    }
+
+    private void SearchVaccines()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredVaccines = allVaccines;
+        }
+        else
+        {
+            filteredVaccines = allVaccines
+                .Where(v => v.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                             v.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+}
+

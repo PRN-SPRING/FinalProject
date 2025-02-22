@@ -1,8 +1,89 @@
 ﻿@page "/staff-home"
 @layout FinalProject.Components.Layout.StaffLayout
 
-<h3>Home Staff</h3>
+<h2 class="mb-4">Dashboard - Vaccination for Children</h2>
+
+<div class="row">
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Completed Vaccinations</h5>
+                <p class="card-text"><strong>@(completedVaccines)</strong> children have been vaccinated.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Remaining Vaccinations</h5>
+                <p class="card-text"><strong>@(remainingVaccines)</strong> children have not been vaccinated yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-lg-4 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Vaccination Success Rate</h5>
+                <p class="card-text"><strong>@GetVaccinationRate()</strong>% of children have been successfully vaccinated.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<h4>List of Vaccinated Children</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Vaccination Date</th>
+            <th scope="col">Vaccine</th>
+            <th scope="col">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var child in vaccinatedChildren)
+        {
+            <tr>
+                <th scope="row">@child.Id</th>
+                <td>@child.Name</td>
+                <td>@child.VaccinationDate.ToString("dd/MM/yyyy")</td>
+                <td>@child.Vaccine</td>
+                <td>@child.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
 
 @code {
+    // Mock data for vaccination information
+    private int completedVaccines = 150;
+    private int remainingVaccines = 50;
 
+    private List<VaccinatedChild> vaccinatedChildren = new List<VaccinatedChild>
+    {
+        new VaccinatedChild { Id = 1, Name = "Le Quang Hieu", VaccinationDate = DateTime.Now.AddDays(-10), Vaccine = "Vaccine A", Status = "Vaccinated" },
+        new VaccinatedChild { Id = 2, Name = "Nguyen Hoang Lan", VaccinationDate = DateTime.Now.AddDays(-5), Vaccine = "Vaccine B", Status = "Vaccinated" },
+        new VaccinatedChild { Id = 3, Name = "Phan Thanh Son", VaccinationDate = DateTime.Now.AddDays(-2), Vaccine = "Vaccine A", Status = "Vaccinated" },
+        new VaccinatedChild { Id = 4, Name = "Tran Quynh Mai", VaccinationDate = DateTime.Now.AddDays(-1), Vaccine = "Vaccine C", Status = "Vaccinated" }
+    };
+
+    public class VaccinatedChild
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public DateTime VaccinationDate { get; set; }
+        public string Vaccine { get; set; }
+        public string Status { get; set; }
+    }
+
+    // Method to calculate the vaccination success rate
+    private double GetVaccinationRate()
+    {
+        return (double)completedVaccines / (completedVaccines + remainingVaccines) * 100;
+    }
 }
