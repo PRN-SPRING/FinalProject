@@ -1,8 +1,8 @@
 ﻿@page "/vaccines/details"
 @using Microsoft.EntityFrameworkCore
 @using Data.Entities
-@using Services
-@inject IVaccineService VaccineService
+@using Repository
+@inject IVaccineRepository VaccineRepository
 @inject NavigationManager NavigationManager
 @layout FinalProject.Components.Layout.StaffLayout
 
@@ -57,7 +57,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        vaccine = await VaccineService.GetVaccineByIdAsync(Id);
+        vaccine = await VaccineRepository.GetVaccineByIdAsync(Id);
 
         if (vaccine is null)
         {

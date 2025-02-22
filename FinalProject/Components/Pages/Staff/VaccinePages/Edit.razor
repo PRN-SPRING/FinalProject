@@ -1,8 +1,8 @@
 ﻿@page "/vaccines/edit"
 @using Microsoft.EntityFrameworkCore
 @using Data.Entities
-@using Services
-@inject IVaccineService VaccineService
+@using Repository
+@inject IVaccineRepository VaccineRepository
 @inject NavigationManager NavigationManager
 @layout FinalProject.Components.Layout.StaffLayout
 @inject IJSRuntime JSRuntime
@@ -77,7 +77,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Vaccine ??= await VaccineService.GetVaccineByIdAsync(Id);
+        Vaccine ??= await VaccineRepository.GetVaccineByIdAsync(Id);
 
         if (Vaccine is null)
         {
@@ -97,7 +97,7 @@
 
         try
         {
-            await VaccineService.UpdateVaccineAsync(Vaccine);
+            await VaccineRepository.UpdateVaccineAsync(Vaccine);
 
             await JSRuntime.InvokeVoidAsync("Swal.fire", new
             {
@@ -124,7 +124,7 @@
 
     private async Task<bool> VaccineExistsAsync(int id)
     {
-        return await VaccineService.VaccineExistsAsync(id);
+        return await VaccineRepository.VaccineExistsAsync(id);
     }
 }
 

@@ -1,8 +1,8 @@
 ﻿@page "/vaccines/create"
 @using Microsoft.EntityFrameworkCore
 @using Data.Entities
-@using Services
-@inject IVaccineService VaccineService
+@using Repository
+@inject IVaccineRepository VaccineRepository
 @inject NavigationManager NavigationManager
 @layout FinalProject.Components.Layout.StaffLayout
 @inject IJSRuntime JSRuntime
@@ -75,7 +75,7 @@
     {
         try
         {
-            await VaccineService.AddVaccineAsync(Vaccine);
+            await VaccineRepository.AddVaccineAsync(Vaccine);
 
             await JSRuntime.InvokeVoidAsync("Swal.fire", new
             {

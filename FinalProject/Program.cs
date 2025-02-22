@@ -2,16 +2,14 @@
 using FinalProject.Components;
 using Microsoft.EntityFrameworkCore;
 using Repository;
-using Services;
+using Repository.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddScoped<IVaccineService, VaccineService>(); 
-builder.Services.AddScoped<IVaccineRepository, VaccineRepository>(); 
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddRepository();
 builder.Services.AddDbContext<PRNFinalProjectDBContext>(options =>
                         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

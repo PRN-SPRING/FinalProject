@@ -3,8 +3,8 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Data.Entities
 @using Data
-@using Services
-@inject IVaccineService VaccineService
+@using Repository
+@inject IVaccineRepository VaccineRepository
 @layout FinalProject.Components.Layout.StaffLayout
 @rendermode InteractiveServer
 
@@ -169,7 +169,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        allVaccines = (await VaccineService.GetVaccinesAsync()).ToList();
+        allVaccines = (await VaccineRepository.GetVaccinesAsync()).ToList();
         filteredVaccines = allVaccines;
     }
 

@@ -18,7 +18,7 @@ namespace Data.Entities
         public int? VaccinePackageId { get; set; }
         public DateTime ScheduledDate { get; set; }
         public string Status { get; set; } = null!;
-        public Child Child { get; set; } = null!;
+        public Child? Child { get; set; } = null!;
         public Vaccine? Vaccine { get; set; }
         public VaccinePackage? VaccinePackage { get; set; }
 
