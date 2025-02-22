@@ -21,6 +21,9 @@ namespace Data.Entities
         public Child Child { get; set; } = null!;
         public Vaccine? Vaccine { get; set; }
         public VaccinePackage? VaccinePackage { get; set; }
+
+        public int? AppointmentId { get; set; }
+        public Appointment? Appointment { get; set; }
     }
 
 }

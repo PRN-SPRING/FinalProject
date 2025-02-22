@@ -1,4 +1,5 @@
 ﻿@page "/manage-appointment"
+@using Data.Entities
 @layout FinalProject.Components.Layout.StaffLayout
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -6,377 +7,494 @@
 @inject IJSRuntime JSRuntime
 
 <div>
-    <h4>Appointments</h4>
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div></div> 
+    <h2 class="mb-4">Manage Appointments</h2>
+
+    <!-- Search Bar for Filtering -->
+    <div class="mb-3 d-flex">
         <div class="input-group">
-            <input type="text" class="form-control" placeholder="Search..." @bind="searchTerm" />
-            <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="button" @onclick="SearchAppointments">Search</button>
-            </div>
+            <input type="text" class="form-control" placeholder="Search by Customer or Child" @bind="searchQuery" />
+            <button class="btn btn-outline-secondary" type="button" @onclick="SearchAppointments">
+                <i class="fas fa-search"></i> <!-- Icon tìm kiếm (Font Awesome) -->
+            </button>
         </div>
     </div>
-    <div class="table-container">
-        <table class="table table-bordered table-fixed">
-            <thead>
-                <tr>
-                    <th style="width: 150px;">Customer</th>
-                    <th style="width: 150px;">Child</th>
-                    <th style="width: 200px;">Vaccine/Package</th>
-                    <th style="width: 200px;">Appointment Date</th>
-                    <th style="width: 150px;">Status</th>
-                    <th style="width: 300px;">Notes</th>
-                    <th style="width: 150px;">Created By</th>
-                    <th style="width: 200px;">Date Created</th>
-                    <th style="width: 110px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var appointment in filteredAppointments)
-                {
+
+    <!-- Appointment Table -->
+    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd;">
+        @if (filteredAppointments.Any())
+        {
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td>@appointment.Customer?.Name</td>
-                        <td>@appointment.Child?.Name</td>
-                        <td>
-                            @if (appointment.VaccineId != null)
-                            {
-                                @appointment.Vaccine?.Name
-                            }
-                            else if (appointment.VaccinePackageId != null)
-                            {
-                                @appointment.VaccinePackage?.Name
-                            }
-                            else
-                            {
-                                <span>N/A</span>
-                            }
-                        </td>
-                        <td>@appointment.AppointmentDate</td>
-                        <td>@appointment.Status</td>
-                        <td>@appointment.Notes</td>
-                        <td>@appointment.CreatedBy</td> 
-                        <td>@appointment.DateCreated</td> 
-                        <td>
-                            @if (appointment.Status == "Booked")
-                            {
-                                <button @onclick="() => OpenModal(appointment)" class="btn btn-primary">Schedule</button>
-                            }
-                            else if (appointment.Status == "Assigned")
-                            {
-                                <button @onclick="() => CompleteAppointment(appointment)" class="btn btn-success">Complete</button>
-                                <button @onclick="() => CancelAppointment(appointment)" class="btn btn-danger">Cancel</button>
-                            }
-                        </td>
+                        <th>Customer</th>
+                        <th>Child</th>
+                        <th>Vaccine</th>
+                        <th>Vaccine Package</th>
+                        <th>Appointment Date</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var appointment in filteredAppointments)
+                    {
+                        <tr>
+                            <td>@appointment.Customer.FullName</td>
+                            <td>@appointment.Child.FullName</td>
+                            <td>@(appointment.Vaccine?.Name ?? "N/A")</td>
+                            <td>@(appointment.VaccinePackage?.Name ?? "N/A")</td>
+                            <td>@appointment.AppointmentDate.ToString("MM/dd/yyyy")</td>
+                            <td>@appointment.Status</td>
+                            <td>
+                                @(appointment.Notes.Length > 100 ? appointment.Notes.Substring(0, 100) + "..." : appointment.Notes)
+                            </td>
+                            <td>
+                                @if (appointment.Status == "Assigned")
+                                {
+                                    <button class="btn btn-info" @onclick="() => ShowScheduleModal(appointment)">Schedule</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-primary" @onclick="() => ShowDetailsModal(appointment)">Details</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="d-flex flex-column align-items-center justify-content-center p-4 bg-light rounded" style="min-height: 200px;">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No appointments found</h5>
+                <p class="text-muted">Try adjusting your search criteria.</p>
+            </div>
+        }
     </div>
 </div>
 
-<div class="modal @(isModalVisible ? "show" : "")" id="scheduleModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Schedule Vaccination</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="CloseModal">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                @if (selectedAppointment != null)
-                {
-                    <EditForm Model="@newVaccinationSchedule" OnValidSubmit="@SaveVaccinationSchedule">
-                        <div class="form-group">
-                            <label for="scheduledDate">Scheduled Date:</label>
-                            <InputDate id="scheduledDate" @bind-value="newVaccinationSchedule.ScheduledDate" class="form-control" />
-                            <ValidationMessage For="@(() => newVaccinationSchedule.ScheduledDate)" />
+<!-- Schedule Modal -->
+<div class="modal-body">
+    @if (selectedAppointment != null)
+    {
+        <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="scheduleModalLabel">Schedule Vaccination</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Thông tin cuộc hẹn -->
+                        <div class="border p-3 rounded shadow-sm">
+                            <h5 class="text-primary mb-3">Appointment Details</h5>
+                            <p><strong>Child:</strong> @(selectedAppointment.Child?.FullName ?? "N/A")</p>
+                            <p><strong>Appointment Date:</strong> @selectedAppointment.AppointmentDate.ToString("f")</p>
+                            <p>
+                                <strong>Status:</strong>
+                                <span class="badge bg-@(selectedAppointment.Status == "Scheduled" ? "success" : "warning")">
+                                    @selectedAppointment.Status
+                                </span>
+                            </p>
+                            <p><strong>Notes:</strong> @selectedAppointment.Notes</p>
                         </div>
 
-                        <div class="form-group">
-                            <label for="doctorId">Doctor:</label>
-                            <InputSelect id="doctorId" @bind-Value="newVaccinationSchedule.DoctorId" class="form-control">
-                                @foreach (var doctor in doctors)
-                                {
-                                    <option value="@doctor.Id">@doctor.Name</option>
-                                }
-                            </InputSelect>
+                        <!-- Vaccine & Gói vaccine -->
+                        <div class="border p-3 rounded shadow-sm mt-3">
+                            <h5 class="text-success mb-3">Vaccine Information</h5>
+                            <p><strong>Vaccine:</strong> @(selectedAppointment.Vaccine?.Name ?? "Not selected")</p>
+                            <p><strong>Vaccine Package:</strong> @(selectedAppointment.VaccinePackage?.Name ?? "Not selected")</p>
                         </div>
 
-                        <div class="form-group">
-                            <label>Available Slots for Doctor @(doctors.FirstOrDefault(d => d.Id == newVaccinationSchedule.DoctorId)?.Name ?? "N/A") on @newVaccinationSchedule.ScheduledDate.ToShortDateString():</label>
-                            @if (newVaccinationSchedule.DoctorId != 0 && newVaccinationSchedule.ScheduledDate != DateTime.MinValue) //Check DoctorID and ScheduledDate
-                            {
-                                <div class="available-slots">
-                                    @foreach (var slot in GetAvailableSlots(newVaccinationSchedule.DoctorId, newVaccinationSchedule.ScheduledDate))
-                                    {
-                                        <button type="button" @onclick="() => newVaccinationSchedule.ScheduledDate = slot" class="btn btn-outline-primary mr-2 mb-2">@slot.ToString("HH:mm")</button>
-                                    }
-                                    @if (!GetAvailableSlots(newVaccinationSchedule.DoctorId, newVaccinationSchedule.ScheduledDate).Any())
-                                    {
-                                        <p>No available slots for the selected date and doctor.</p>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <p>Please select a doctor and date to see available slots.</p>
-                            }
-
+                        <!-- Ngày tiêm -->
+                        <div class="border p-3 rounded shadow-sm mt-3">
+                            <h5 class="text-danger mb-3">Select Vaccination Date</h5>
+                            <label for="scheduledDate" class="form-label">Vaccination Date</label>
+                            <input type="datetime-local" class="form-control" id="scheduledDate" @bind="scheduledDate" />
                         </div>
 
-                        <input type="hidden" @bind-value="newVaccinationSchedule.ChildId" />
-                        <input type="hidden" @bind-value="newVaccinationSchedule.VaccineId" />
-                        <input type="hidden" @bind-value="newVaccinationSchedule.VaccinePackageId" />
-                        <button type="submit" class="btn btn-primary">Save Schedule</button>
-                        <button type="button" @onclick="() => CloseModal()" class="btn btn-secondary">Cancel</button>
-                    </EditForm>
-                }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" @onclick="SaveVaccinationSchedule">Save</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    }
 </div>
 
+<!-- Appointment Detail Modal -->
+<div class="modal-body">
+    @if (selectedAppointmentForDetail != null)
+    {
+        <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="detailsModalLabel">Appointment Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Thông tin chung -->
+                        <div class="border p-3 rounded shadow-sm">
+                            <h5 class="text-primary mb-3">General Information</h5>
+                            <p><strong>Child:</strong> @selectedAppointmentForDetail.Child?.FullName</p>
+                            <p><strong>Appointment Date:</strong> @selectedAppointmentForDetail.AppointmentDate.ToString("f")</p>
+                            <p>
+                                <strong>Status:</strong>
+                                <span class="badge bg-@(selectedAppointmentForDetail.Status == "Booked" ? "success" : "warning")">
+                                    @selectedAppointmentForDetail.Status
+                                </span>
+                            </p>
+                            <p><strong>Notes:</strong> @selectedAppointmentForDetail.Notes</p>
+                        </div>
+
+                        <!-- Lịch tiêm chủng -->
+                        @if (selectedVaccinationSchedule != null)
+                        {
+                            <div class="border p-3 rounded shadow-sm mt-3">
+                                <h5 class="text-success mb-3">Vaccination Schedule</h5>
+                                <p><strong>Scheduled Date:</strong> @selectedVaccinationSchedule.ScheduledDate.ToString("f")</p>
+                                <p>
+                                    <strong>Status:</strong>
+                                    <span class="badge bg-@(selectedVaccinationSchedule.Status == "Pending" ? "warning" : "success")">
+                                        @selectedVaccinationSchedule.Status
+                                    </span>
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning mt-3">No vaccination schedule available.</div>
+                        }
+
+                        <!-- Báo cáo của bác sĩ -->
+                        @if (selectedAppointmentDetail != null)
+                        {
+                            <div class="border p-3 rounded shadow-sm mt-3">
+                                <h5 class="text-danger mb-3">Doctor's Report</h5>
+                                <p><strong>Doctor ID:</strong> @selectedAppointmentDetail.DoctorId</p>
+                                <p>
+                                    <strong>Status:</strong>
+                                    <span class="badge bg-@(selectedAppointmentDetail.Status == "In Progress" ? "info" : "success")">
+                                        @selectedAppointmentDetail.Status
+                                    </span>
+                                </p>
+                                <p><strong>Diagnosis:</strong> @selectedAppointmentDetail.Diagnosis</p>
+                                <p><strong>Treatment:</strong> @selectedAppointmentDetail.Treatment</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning mt-3">No appointment details available.</div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
-    private string searchTerm = "";
-    private bool isModalVisible = false;
-    private List<Appointment> appointments = new();
-    private List<Appointment> filteredAppointments = new();
-    private Appointment? selectedAppointment;
-    private VaccinationSchedule newVaccinationSchedule = new();
-    private List<Doctor> doctors = new();
+    private List<Appointment> appointments = new List<Appointment>();
+    private List<Appointment> filteredAppointments = new List<Appointment>();
+    private List<VaccinationSchedule> vaccinationSchedules = new List<VaccinationSchedule>();
+    private List<AppointmentDetail> appointmentDetails = new List<AppointmentDetail>();
+    private string searchQuery = "";
+    private DateTime scheduledDate = DateTime.Now;
+
+    private VaccinationSchedule? selectedVaccinationSchedule;
+    private AppointmentDetail? selectedAppointmentDetail;
+
+    private Appointment? selectedAppointment = new Appointment();
+    private Appointment? selectedAppointmentForDetail = new Appointment();
 
     protected override async Task OnInitializedAsync()
     {
-        appointments = await GetAppointments();
+        appointments = await GetAppointmentsAsync();
         filteredAppointments = appointments;
-        doctors = await GetDoctors();
-    }
-
-    private async Task OpenModal(Appointment appointment)
-    {
-        ScheduleAppointment(appointment);
-        isModalVisible = true;
-        await JSRuntime.InvokeVoidAsync("showModal", "#scheduleModal"); 
-    }
-
-    private async Task CloseModal()
-    {
-        isModalVisible = false;
-        selectedAppointment = null;
-        await JSRuntime.InvokeVoidAsync("hideModal", "#scheduleModal"); 
-    }
-
-    private async Task<List<Appointment>> GetAppointments()
-    {
-        // return await HttpClient.GetFromJsonAsync<List<Appointment>>("api/appointments");
-        await Task.Delay(100);
-        return new List<Appointment>()
-        {
-            new Appointment { Id = 1, Customer = new User{Name="John Doe"}, Child = new Child{Name="Alice", Id=1}, Vaccine = new Vaccine{Name="Flu Vaccine", Id=1}, VaccineId = 1, AppointmentDate = DateTime.Now, Status = "Booked", Notes = "First appointment" },
-            new Appointment { Id = 2, Customer = new User{Name="Jane Smith"}, Child = new Child{Name="Bob", Id=2}, VaccinePackage = new VaccinePackage{Name="Child Package", Id=2}, VaccinePackageId = 2, AppointmentDate = DateTime.Now.AddDays(7), Status = "Booked", Notes = "Follow-up" },
-            new Appointment { Id = 3, Customer = new User{Name="Michael Johnson"}, Child = new Child{Name="Charlie", Id=3}, Vaccine = new Vaccine{Name="Hepatitis B", Id=3}, VaccineId = 3, AppointmentDate = DateTime.Now.AddDays(2), Status = "Pending", Notes = "Initial dose" },
-            new Appointment { Id = 4, Customer = new User{Name="Emily Davis"}, Child = new Child{Name="Daisy", Id=4}, VaccinePackage = new VaccinePackage{Name="Basic Immunization", Id=4}, VaccinePackageId = 4, AppointmentDate = DateTime.Now.AddDays(10), Status = "Confirmed", Notes = "Routine checkup" },
-            new Appointment { Id = 5, Customer = new User{Name="David Wilson"}, Child = new Child{Name="Ethan", Id=5}, Vaccine = new Vaccine{Name="MMR", Id=5}, VaccineId = 5, AppointmentDate = DateTime.Now.AddDays(4), Status = "Booked", Notes = "Measles, Mumps, Rubella vaccine" },
-            new Appointment { Id = 6, Customer = new User{Name="Sophia Martinez"}, Child = new Child{Name="Fiona", Id=6}, VaccinePackage = new VaccinePackage{Name="Full Protection Package", Id=6}, VaccinePackageId = 6, AppointmentDate = DateTime.Now.AddDays(14), Status = "Pending", Notes = "Comprehensive vaccination" },
-            new Appointment { Id = 7, Customer = new User{Name="Daniel Anderson"}, Child = new Child{Name="George", Id=7}, Vaccine = new Vaccine{Name="Chickenpox", Id=7}, VaccineId = 7, AppointmentDate = DateTime.Now.AddDays(5), Status = "Cancelled", Notes = "Parent request reschedule" },
-            new Appointment { Id = 8, Customer = new User{Name="Olivia Thomas"}, Child = new Child{Name="Hannah", Id=8}, Vaccine = new Vaccine{Name="Polio Vaccine", Id=8}, VaccineId = 8, AppointmentDate = DateTime.Now.AddDays(3), Status = "Confirmed", Notes = "Final dose" },
-            new Appointment { Id = 9, Customer = new User{Name="James White"}, Child = new Child{Name="Ian", Id=9}, VaccinePackage = new VaccinePackage{Name="Teen Vaccine Package", Id=9}, VaccinePackageId = 9, AppointmentDate = DateTime.Now.AddDays(9), Status = "Pending", Notes = "Scheduled for next visit" },
-            new Appointment { Id = 10, Customer = new User{Name="Charlotte Harris"}, Child = new Child{Name="Jack", Id=10}, Vaccine = new Vaccine{Name="COVID-19 Vaccine", Id=10}, VaccineId = 10, AppointmentDate = DateTime.Now.AddDays(7), Status = "Booked", Notes = "Booster dose" },
-            new Appointment { Id = 11, Customer = new User{Name="John Doe"}, Child = new Child{Name="Alice", Id=1}, Vaccine = new Vaccine{Name="Flu Vaccine", Id=1}, VaccineId = 1, AppointmentDate = DateTime.Now, Status = "Booked", Notes = "First appointment" },
-            new Appointment { Id = 12, Customer = new User{Name="Jane Smith"}, Child = new Child{Name="Bob", Id=2}, VaccinePackage = new VaccinePackage{Name="Child Package", Id=2}, VaccinePackageId = 2, AppointmentDate = DateTime.Now.AddDays(7), Status = "Booked", Notes = "Follow-up" },
-            new Appointment { Id = 13, Customer = new User{Name="Michael Johnson"}, Child = new Child{Name="Charlie", Id=3}, Vaccine = new Vaccine{Name="Hepatitis B", Id=3}, VaccineId = 3, AppointmentDate = DateTime.Now.AddDays(2), Status = "Pending", Notes = "Initial dose" },
-            new Appointment { Id = 14, Customer = new User{Name="Emily Davis"}, Child = new Child{Name="Daisy", Id=4}, VaccinePackage = new VaccinePackage{Name="Basic Immunization", Id=4}, VaccinePackageId = 4, AppointmentDate = DateTime.Now.AddDays(10), Status = "Confirmed", Notes = "Routine checkup" },
-            new Appointment { Id = 15, Customer = new User{Name="David Wilson"}, Child = new Child{Name="Ethan", Id=5}, Vaccine = new Vaccine{Name="MMR", Id=5}, VaccineId = 5, AppointmentDate = DateTime.Now.AddDays(4), Status = "Booked", Notes = "Measles, Mumps, Rubella vaccine" },
-            new Appointment { Id = 16, Customer = new User{Name="Sophia Martinez"}, Child = new Child{Name="Fiona", Id=6}, VaccinePackage = new VaccinePackage{Name="Full Protection Package", Id=6}, VaccinePackageId = 6, AppointmentDate = DateTime.Now.AddDays(14), Status = "Pending", Notes = "Comprehensive vaccination" },
-            new Appointment { Id = 17, Customer = new User{Name="Daniel Anderson"}, Child = new Child{Name="George", Id=7}, Vaccine = new Vaccine{Name="Chickenpox", Id=7}, VaccineId = 7, AppointmentDate = DateTime.Now.AddDays(5), Status = "Cancelled", Notes = "Parent request reschedule" },
-            new Appointment { Id = 18, Customer = new User{Name="Olivia Thomas"}, Child = new Child{Name="Hannah", Id=8}, Vaccine = new Vaccine{Name="Polio Vaccine", Id=8}, VaccineId = 8, AppointmentDate = DateTime.Now.AddDays(3), Status = "Confirmed", Notes = "Final dose" },
-            new Appointment { Id = 19, Customer = new User{Name="James White"}, Child = new Child{Name="Ian", Id=9}, VaccinePackage = new VaccinePackage{Name="Teen Vaccine Package", Id=9}, VaccinePackageId = 9, AppointmentDate = DateTime.Now.AddDays(9), Status = "Pending", Notes = "Scheduled for next visit" },
-            new Appointment { Id = 20, Customer = new User{Name="Charlotte Harris"}, Child = new Child{Name="Jack", Id=10}, Vaccine = new Vaccine{Name="COVID-19 Vaccine", Id=10}, VaccineId = 10, AppointmentDate = DateTime.Now.AddDays(7), Status = "Booked", Notes = "Booster dose" }
-        };
-
     }
 
     private void SearchAppointments()
     {
-        if (string.IsNullOrEmpty(searchTerm))
+        if (string.IsNullOrWhiteSpace(searchQuery))
         {
-            filteredAppointments = appointments; 
-            return;
+            filteredAppointments = appointments;
         }
-
-        searchTerm = searchTerm.ToLower(); 
-
-        filteredAppointments = appointments.Where(appointment =>
-            (appointment.Customer?.Name?.ToLower().Contains(searchTerm) ?? false) ||
-            (appointment.Child?.Name?.ToLower().Contains(searchTerm) ?? false) ||
-            (appointment.Vaccine?.Name?.ToLower().Contains(searchTerm) ?? false) ||
-            (appointment.VaccinePackage?.Name?.ToLower().Contains(searchTerm) ?? false) ||
-            appointment.AppointmentDate.ToString("dd/MM/yyyy").Contains(searchTerm) ||
-            (appointment.Status?.ToLower().Contains(searchTerm) ?? false) ||
-            (appointment.Notes?.ToLower().Contains(searchTerm) ?? false)
-        ).ToList();
-    }
-
-    private async Task<List<Doctor>> GetDoctors()
-    {
-        await Task.Delay(100);
-        return new List<Doctor>() {
-            new Doctor { Id = 1, Name = "Dr. Smith", DateFree = { DateTime.Today.AddHours(9).AddMinutes(30), DateTime.Today.AddHours(13).AddMinutes(30) } },
-            new Doctor { Id = 2, Name = "Dr. Jones", DateFree = { DateTime.Today.AddHours(15).AddMinutes(30), DateTime.Today.AddHours(18).AddMinutes(30) } }
-        };
-    }
-
-    private void ScheduleAppointment(Appointment appointment)
-    {
-        selectedAppointment = appointment;
-        newVaccinationSchedule = new VaccinationSchedule
-            {
-                ChildId = appointment.Child.Id,
-                VaccineId = appointment.VaccineId,
-                VaccinePackageId = appointment.VaccinePackageId,
-                ScheduledDate = appointment.AppointmentDate,
-                Status = "Pending",
-                CreatedBy = 1,
-                DoctorId = 0
-            };
-    }
-
-    private List<DateTime> GetAvailableSlots(int doctorId, DateTime date)
-    {
-        List<DateTime> availableSlots = new();
-        Doctor doctor = doctors.FirstOrDefault(d => d.Id == doctorId);
-        foreach (var slot in doctor.DateFree)
+        else
         {
-            if (slot.Date == date.Date)
-            {
-                availableSlots.Add(slot);
-            }
+            filteredAppointments = appointments.Where(a =>
+                a.Customer.FullName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                a.Child.FullName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
         }
-        return availableSlots;
+    }
+
+    private async Task ShowScheduleModal(Appointment appointment)
+    {
+        if (appointment != null)
+        {
+            selectedAppointment = appointment;
+            scheduledDate = DateTime.Now;
+
+            await OpenModal();
+        }
+    }
+
+    private async Task ShowDetailsModal(Appointment appointment)
+    {
+        selectedAppointmentForDetail = appointment;
+
+        selectedVaccinationSchedule = vaccinationSchedules.FirstOrDefault(vs => vs.AppointmentId == appointment.Id);
+        selectedAppointmentDetail = appointmentDetails.FirstOrDefault(ad => ad.AppointmentId == appointment.Id);
+
+        await OpenDetailsModal();
     }
 
     private async Task SaveVaccinationSchedule()
     {
-        // await HttpClient.PostAsJsonAsync("api/vaccinationschedules", newVaccinationSchedule);
-
-        selectedAppointment.Status = "Assigned";
-        // await UpdateAppointment(selectedAppointment);
-
-        selectedAppointment = null; // Close the scheduling section
-        await CloseModal();
-        await JSRuntime.InvokeVoidAsync("alert", "Vaccination scheduled successfully!");
-        // NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true); // Refresh the page
-    }
-
-    private async Task CompleteAppointment(Appointment appointment)
-    {
-        appointment.Status = "Completed";
-        // await UpdateAppointment(appointment);
-        await JSRuntime.InvokeVoidAsync("alert", "Appointment completed!");
-        // NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true); // Refresh the page
-    }
-
-    private async Task CancelAppointment(Appointment appointment)
-    {
-        appointment.Status = "Cancelled";
-        // await UpdateAppointment(appointment);
-        await JSRuntime.InvokeVoidAsync("alert", "Appointment cancelled!");
-        // NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true); // Refresh the page
-    }
-
-    public class Appointment
-    {
-        public int Id { get; set; }
-        public User Customer { get; set; }
-        public Child Child { get; set; }
-        public Vaccine Vaccine { get; set; }
-        public VaccinePackage VaccinePackage { get; set; }
-        public int? VaccineId { get; set; }
-        public int? VaccinePackageId { get; set; }
-        public DateTime AppointmentDate { get; set; }
-        public string Status { get; set; }
-        public string Notes { get; set; }
-        public int CreatedBy { get; set; }
-        public DateTime DateCreated { get; set; }
-    }
-
-    public class Doctor
-    {
-        public Doctor()
+        var vaccinationSchedule = new VaccinationSchedule
         {
-            DateFree = new();
+            ChildId = selectedAppointment.ChildId,
+            VaccineId = selectedAppointment.VaccineId,
+            VaccinePackageId = selectedAppointment.VaccinePackageId,
+            ScheduledDate = scheduledDate,
+            Status = "Pending",
+            AppointmentId = selectedAppointment.Id
+        };
+
+        var appointmentDetail = new AppointmentDetail
+        {
+            AppointmentId = selectedAppointment.Id,
+            DoctorId = 1,
+            Status = "In Progress",
+            Diagnosis = "N/A",
+            Treatment = "N/A"
+        };
+
+        await SaveVaccinationScheduleAsync(vaccinationSchedule, appointmentDetail);
+    }
+
+    private async Task SaveVaccinationScheduleAsync(VaccinationSchedule vaccinationSchedule, AppointmentDetail appointmentDetail)
+    {
+        vaccinationSchedules.Add(vaccinationSchedule);
+        appointmentDetails.Add(appointmentDetail);
+
+        selectedAppointment.Status = "Booked";
+
+        await Task.Delay(500);
+
+        await JSRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title = "Success!",
+            text = "Vaccination schedule has been saved successfully.",
+            icon = "success",
+            confirmButtonText = "OK"
+        });
+
+        await CloseModal();
+    }
+
+    private async Task OpenModal()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+            modal.show();
+        ");
+    }
+
+    private async Task CloseModal()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var modalElement = document.getElementById('scheduleModal');
+            if (modalElement) {
+                var modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        ");
+    }
+
+    private async Task OpenDetailsModal()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            modal.show();
+        ");
+    }
+
+    private async Task CloseDetailsModal()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var modalElement = document.getElementById('detailsModal');
+            if (modalElement) {
+                var modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        ");
+    }
+
+    private async Task<List<Appointment>> GetAppointmentsAsync()
+    {
+        // Example appointments list (replace with actual data fetching logic)
+        return new List<Appointment>
+    {
+        new Appointment
+        {
+            Id = 1,
+            Customer = new User { FullName = "John Doe" },
+            Child = new Child { FullName = "Tommy" },
+            Vaccine = new Vaccine { Id = 1, Name = "Flu Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 1, Name = "Flu Package" },
+            VaccineId = 1,
+            VaccinePackageId = 1,
+            AppointmentDate = DateTime.Now,
+            Status = "Assigned",
+            Notes = "First dose"
+        },
+        new Appointment
+        {
+            Id = 2,
+            Customer = new User { FullName = "Jane Smith" },
+            Child = new Child { FullName = "Lily" },
+            VaccineId = 2,
+            VaccinePackageId = 2,
+            Vaccine = new Vaccine { Id = 2, Name = "COVID-19 Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 2, Name = "COVID Package" },
+            AppointmentDate = DateTime.Now.AddDays(1),
+            Status = "Assigned",
+            Notes = "Second dose"
+        },
+        // Additional fake data
+        new Appointment
+        {
+            Id = 3,
+            Customer = new User { FullName = "Michael Brown" },
+            Child = new Child { FullName = "Jake" },
+            Vaccine = new Vaccine { Id = 3, Name = "Hepatitis B" },
+            VaccinePackage = new VaccinePackage { Id = 3, Name = "Hepatitis Package" },
+            VaccineId = 3,
+            VaccinePackageId = 3,
+            AppointmentDate = DateTime.Now.AddDays(2),
+            Status = "Assigned",
+            Notes = "The vaccination appointment was successfully completed without any complications. The child showed no adverse reactions, and post-vaccination care instructions were provided to the parents."
+        },
+        new Appointment
+        {
+            Id = 4,
+            Customer = new User { FullName = "Sarah Connor" },
+            Child = new Child { FullName = "Emily" },
+            Vaccine = new Vaccine { Id = 4, Name = "Polio Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 4, Name = "Polio Package" },
+            VaccineId = 4,
+            VaccinePackageId = 4,
+            AppointmentDate = DateTime.Now.AddDays(3),
+            Status = "Assigned",
+            Notes = "Needs confirmation"
+        },
+        new Appointment
+        {
+            Id = 5,
+            Customer = new User { FullName = "Tom Cruise" },
+            Child = new Child { FullName = "Chris" },
+            Vaccine = new Vaccine { Id = 5, Name = "MMR Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 5, Name = "Childhood Vaccines" },
+            VaccineId = 5,
+            VaccinePackageId = 5,
+            AppointmentDate = DateTime.Now.AddDays(-1),
+            Status = "Assigned",
+            Notes = "Cancelled by customer"
+        },
+        new Appointment
+        {
+            Id = 6,
+            Customer = new User { FullName = "Emma Watson" },
+            Child = new Child { FullName = "Sophia" },
+            Vaccine = new Vaccine { Id = 6, Name = "HPV Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 6, Name = "Teen Vaccines" },
+            VaccineId = 6,
+            VaccinePackageId = 6,
+            AppointmentDate = DateTime.Now.AddDays(5),
+            Status = "Assigned",
+            Notes = "Follow-up required"
+        },
+        new Appointment
+        {
+            Id = 7,
+            Customer = new User { FullName = "Robert Downey Jr." },
+            Child = new Child { FullName = "Tony" },
+            Vaccine = new Vaccine { Id = 7, Name = "DTP Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 7, Name = "Primary Vaccines" },
+            VaccineId = 7,
+            VaccinePackageId = 7,
+            AppointmentDate = DateTime.Now.AddDays(-3),
+            Status = "Assigned",
+            Notes = "Vaccination complete"
+        },
+        new Appointment
+        {
+            Id = 8,
+            Customer = new User { FullName = "Scarlett Johansson" },
+            Child = new Child { FullName = "Natasha" },
+            Vaccine = new Vaccine { Id = 8, Name = "Typhoid Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 8, Name = "Travel Vaccines" },
+            VaccineId = 8,
+            VaccinePackageId = 8,
+            AppointmentDate = DateTime.Now.AddDays(7),
+            Status = "Assigned",
+            Notes = "Awaiting customer confirmation"
+        },
+        new Appointment
+        {
+            Id = 9,
+            Customer = new User { FullName = "Chris Hemsworth" },
+            Child = new Child { FullName = "Liam" },
+            Vaccine = new Vaccine { Id = 9, Name = "Yellow Fever Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 9, Name = "Travel Vaccines" },
+            VaccineId = 9,
+            VaccinePackageId = 9,
+            AppointmentDate = DateTime.Now.AddDays(10),
+            Status = "Assigned",
+            Notes = "Vaccination appointment scheduled"
+        },
+        new Appointment
+        {
+            Id = 10,
+            Customer = new User { FullName = "Gal Gadot" },
+            Child = new Child { FullName = "Diana" },
+            Vaccine = new Vaccine { Id = 10, Name = "Rabies Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 10, Name = "Post Exposure" },
+            VaccineId = 10,
+            VaccinePackageId = 10,
+            AppointmentDate = DateTime.Now.AddDays(-2),
+            Status = "Assigned",
+            Notes = "Completed without issues"
+        },
+        new Appointment
+        {
+            Id = 11,
+            Customer = new User { FullName = "Ryan Reynolds" },
+            Child = new Child { FullName = "Wade" },
+            Vaccine = new Vaccine { Id = 11, Name = "Cholera Vaccine" },
+            VaccinePackage = new VaccinePackage { Id = 11, Name = "Outbreak Control" },
+            VaccineId = 11,
+            VaccinePackageId = 11,
+            AppointmentDate = DateTime.Now.AddDays(8),
+            Status = "Assigned",
+            Notes = "Follow-up needed"
         }
-
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public List<DateTime> DateFree { get; set; }
+    };
     }
 
-    public class User
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class Child
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class Vaccine
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class VaccinePackage
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class VaccinationSchedule
-    {
-        public int Id { get; set; }
-        public int ChildId { get; set; }
-        public int? VaccineId { get; set; }
-        public int? VaccinePackageId { get; set; }
-        public DateTime ScheduledDate { get; set; }
-        public string Status { get; set; }
-        public int CreatedBy { get; set; }
-        public int DoctorId { get; set; }
-    }
 }
 
-<script>
-    window.showModal = (selector) => {
-        $(selector).modal('show');
-    };
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    window.hideModal = (selector) => {
-        $(selector).modal('hide');
-    };
-</script>
-
-<style>
-    .table-container {
-        width: 100%; /* Chiều rộng container */
-        max-height: 500px; /* Chiều cao tối đa của bảng */
-        overflow-y: auto; /* Kéo dọc cho bảng */
-    }
-
-    .table-fixed {
-        overflow-x: auto; /* Kéo ngang cho bảng */
-    }
-
-        .table-fixed th, .table-fixed td {
-            overflow: hidden; /* Ẩn nội dung vượt quá chiều rộng cột */
-            text-overflow: ellipsis; /* Hiển thị dấu "..." nếu nội dung bị ẩn */
-            padding: 8px; /* Padding cho các ô */
-            border: 1px solid #dee2e6; /* Border cho các ô */
-            box-sizing: border-box; /* Tính cả padding và border vào độ rộng cột */
-        }
-</style>
