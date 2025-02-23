@@ -30,9 +30,9 @@
     <PropertyColumn Property="user => user.YearsOfExperience" />
 
     <TemplateColumn Context="user">
-        <a href="@($"users/edit?id={user.Id}")">Edit</a> |
-        <a href="@($"users/details?id={user.Id}")">Details</a> |
-        <a href="@($"users/delete?id={user.Id}")">Delete</a>
+        <a href="@($"user/edit?id={user.Id}")">Edit</a> |
+        <a href="@($"user/details?id={user.Id}")">Details</a> |
+        <a href="@($"user/delete?id={user.Id}")">Delete</a>
     </TemplateColumn>
 </QuickGrid>
 

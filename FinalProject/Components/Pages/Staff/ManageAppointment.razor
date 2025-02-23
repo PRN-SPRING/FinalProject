@@ -1,11 +1,11 @@
-﻿@page "/manage-appointment"
+﻿@page "/staff/manage-appointment"
 @using Data.Entities
 @using Repository.Interface
 @inject IAppointmentRepository AppointmentRepository
 @inject IAppointmentDetailRepository AppointmentDetailRepository
 @inject IUserRepository UserRepository
 @inject IVaccinationScheduleRepository VaccinationScheduleRepository
-@layout FinalProject.Components.Layout.StaffLayout
+@layout FinalProject.Components.Layout.StaffLayout.StaffLayout
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
