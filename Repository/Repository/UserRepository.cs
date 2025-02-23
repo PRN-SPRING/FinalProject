@@ -24,8 +24,9 @@ namespace Repository.Repository
 
         public async Task<User> GetByUsernameAsync(string username)
         {
+            var normalizedUsername = username.ToLower();
             return await _context.Users
-                .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+                .FirstOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
         }
 
         public async Task<User> GetByIdAsync(int id)
@@ -37,13 +38,16 @@ namespace Repository.Repository
         {
             var user = await GetByUsernameAsync(username);
             if (user == null) return false;
+            string result = password;
+            System.Diagnostics.Debug.WriteLine(result);
+            System.Diagnostics.Debug.WriteLine(username);
+            System.Diagnostics.Debug.WriteLine(user.Password);
+            //var result = _passwordHasher.VerifyHashedPassword(
+            //    user,
+            //    user.Password,
+            //    password);
 
-            var result = _passwordHasher.VerifyHashedPassword(
-                user,
-                user.Password,
-                password);
-
-            if (result == PasswordVerificationResult.Success)
+            if (result.Equals(user.Password))
             {
                 return true;
             }
@@ -53,7 +57,7 @@ namespace Repository.Repository
 
         public async Task<User> CreateUserAsync(string username, string password,
                 string fullName, string email, string? phoneNumber,
-                string? address, string gender,string role, DateTime? birthdate)
+                string? address, string? gender,string role, DateTime? birthdate)
         {
             // Validate required fields
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)
@@ -84,6 +88,7 @@ namespace Repository.Repository
                 user.Username = username;
                 user.Email = email;
                 user.PhoneNumber = phoneNumber;
+                user.FullName = fullName;
                 user.Address = address;
                 user.Gender = gender;
                 user.Birthdate = birthdate;

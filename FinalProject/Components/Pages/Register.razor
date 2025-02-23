@@ -1,5 +1,5 @@
-﻿@layout FinalProject.Components.Layout.LoginLayout;
-@page "/register"
+﻿@page "/register"
+@layout FinalProject.Components.Layout.LoginLayout;
 @using Repository.Interface
 @inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
@@ -10,7 +10,7 @@
         <h2>Register</h2>
         <EditForm Model="registerModel" OnValidSubmit="HandleRegistration">
             <DataAnnotationsValidator />
-            
+
             <div class="form-group">
                 <label>Username:</label>
                 <InputText @bind-Value="username" class="form-control" />
@@ -52,7 +52,7 @@
 
             <div class="form-group">
                 <label>Birthdate:</label>
-                <InputDate @bind-Value="birthdate" class="form-control" />
+                <Microsoft.AspNetCore.Components.Forms.InputDate @bind-Value="birthdate" class="form-control" />
             </div>
 
             @if (!string.IsNullOrEmpty(errorMessage))
@@ -73,6 +73,7 @@
     private string? phoneNumber;
     private string? address;
     private string? gender;
+    private string role = "customer";
     private DateTime? birthdate;
     private string? errorMessage;
     
@@ -83,13 +84,13 @@
     {
         try
         {
-            await UserRepository.CreateUserAsync(username,password,fullName,email,phoneNumber,address,gender,birthdate);
+            await UserRepository.CreateUserAsync(username, password, fullName, email, phoneNumber, address, gender, role, birthdate);
 
             NavigationManager.NavigateTo("/login");
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Username already exists"))
+        catch (InvalidOperationException ex)
         {
-            errorMessage = "Username has already been taken";
+            errorMessage = ex.Message;
         }
         catch (Exception ex)
         {
