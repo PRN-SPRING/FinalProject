@@ -111,7 +111,7 @@
                 </div>
             </div>
             <div class="col-md-6 text-end">
-                <a href="vaccines/create" class="btn btn-success">Create New Vaccine</a>
+                <a href="/staff/vaccines/create" class="btn btn-success">Create New Vaccine</a>
             </div>
         </div>
 
@@ -141,9 +141,9 @@
                                 <td>@vaccine.MaxAgeToUse</td>
                                 <td>@vaccine.Price</td>
                                 <td>
-                                    <a href="@($"vaccines/edit?id={vaccine.Id}")" class="btn btn-primary btn-sm">Edit</a> |
-                                    <a href="@($"vaccines/details?id={vaccine.Id}")" class="btn btn-info btn-sm">Details</a> |
-                                    <a href="@($"vaccines/delete?id={vaccine.Id}")" class="btn btn-danger btn-sm">Delete</a>
+                                    <a href="@($"staff/vaccines/edit?id={vaccine.Id}")" class="btn btn-primary btn-sm">Edit</a> |
+                                    <a href="@($"staff/vaccines/details?id={vaccine.Id}")" class="btn btn-info btn-sm">Details</a> |
+                                    <a href="@($"staff/vaccines/delete?id={vaccine.Id}")" class="btn btn-danger btn-sm">Delete</a>
                                 </td>
                             </tr>
                         }
