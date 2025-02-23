@@ -1,4 +1,5 @@
-﻿using Data.Entities;
+﻿using Data.DTOs;
+using Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,10 @@ namespace Repository
 {
     public interface IVaccineRepository
     {
-        Task<Vaccine> GetVaccineByIdAsync(int id);
-        Task<IEnumerable<Vaccine>> GetVaccinesAsync();
-        Task AddVaccineAsync(Vaccine vaccine);
-        Task UpdateVaccineAsync(Vaccine vaccine);
+        Task<VaccineDTO> GetVaccineByIdAsync(int id);
+        Task<IEnumerable<VaccineDTO>> GetVaccinesAsync();
+        Task AddVaccineAsync(VaccineDTO vaccine);
+        Task UpdateVaccineAsync(VaccineDTO vaccine);
         Task DeleteVaccineAsync(int id);
         Task<bool> VaccineExistsAsync(int id);  
     }

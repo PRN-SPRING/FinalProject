@@ -1,6 +1,6 @@
 ﻿@page "/staff/vaccines/create"
 @using Microsoft.EntityFrameworkCore
-@using Data.Entities
+@using Data.DTOs
 @using Repository
 @inject IVaccineRepository VaccineRepository
 @inject NavigationManager NavigationManager
@@ -18,42 +18,42 @@
             <h2>Vaccine Information</h2>
         </div>
         <div class="card-body">
-            <EditForm Model="Vaccine" OnValidSubmit="AddVaccine" FormName="create-vaccine" class="needs-validation">
+            <EditForm Model="@VaccineDTO" OnValidSubmit="AddVaccine" FormName="create-vaccine" class="needs-validation">
                 <DataAnnotationsValidator />
 
                 <!-- Vaccine Name -->
                 <div class="form-group">
                     <label for="name" class="form-label">Name</label>
-                    <InputText id="name" @bind-Value="Vaccine.Name" class="form-control" placeholder="Enter vaccine name" />
-                    <ValidationMessage For="() => Vaccine.Name" class="text-danger small" />
+                    <InputText id="name" @bind-Value="VaccineDTO.Name" class="form-control" placeholder="Enter vaccine name" />
+                    <ValidationMessage For="() => VaccineDTO.Name" class="text-danger small" />
                 </div>
 
                 <!-- Vaccine Description -->
                 <div class="form-group">
                     <label for="description" class="form-label">Description</label>
-                    <InputTextArea id="description" @bind-Value="Vaccine.Description" class="form-control" Rows="3" placeholder="Enter vaccine description" />
-                    <ValidationMessage For="() => Vaccine.Description" class="text-danger small" />
+                    <InputTextArea id="description" @bind-Value="VaccineDTO.Description" class="form-control" Rows="3" placeholder="Enter vaccine description" />
+                    <ValidationMessage For="() => VaccineDTO.Description" class="text-danger small" />
                 </div>
 
                 <!-- Min and Max Age -->
                 <div class="form-row">
                     <div class="form-group col-md-6">
                         <label for="minagetouse" class="form-label">Min Age</label>
-                        <InputNumber id="minagetouse" @bind-Value="Vaccine.MinAgeToUse" class="form-control" placeholder="Min age" />
-                        <ValidationMessage For="() => Vaccine.MinAgeToUse" class="text-danger small" />
+                        <InputNumber id="minagetouse" @bind-Value="VaccineDTO.MinAgeToUse" class="form-control" placeholder="Min age" />
+                        <ValidationMessage For="() => VaccineDTO.MinAgeToUse" class="text-danger small" />
                     </div>
                     <div class="form-group col-md-6">
                         <label for="maxagetouse" class="form-label">Max Age</label>
-                        <InputNumber id="maxagetouse" @bind-Value="Vaccine.MaxAgeToUse" class="form-control" placeholder="Max age" />
-                        <ValidationMessage For="() => Vaccine.MaxAgeToUse" class="text-danger small" />
+                        <InputNumber id="maxagetouse" @bind-Value="VaccineDTO.MaxAgeToUse" class="form-control" placeholder="Max age" />
+                        <ValidationMessage For="() => VaccineDTO.MaxAgeToUse" class="text-danger small" />
                     </div>
                 </div>
 
                 <!-- Price -->
                 <div class="form-group">
                     <label for="price">Price</label>
-                    <InputNumber id="price" @bind-Value="Vaccine.Price" class="form-control" placeholder="Enter price" />
-                    <ValidationMessage For="() => Vaccine.Price" class="text-danger small" />
+                    <InputNumber id="price" @bind-Value="VaccineDTO.Price" class="form-control" placeholder="Enter price" />
+                    <ValidationMessage For="() => VaccineDTO.Price" class="text-danger small" />
                 </div>
 
                 <!-- Buttons -->
@@ -69,13 +69,13 @@
 
 @code {
     [SupplyParameterFromForm]
-    private Vaccine Vaccine { get; set; } = new();
+    private VaccineDTO VaccineDTO { get; set; } = new();
 
     private async Task AddVaccine()
     {
         try
         {
-            await VaccineRepository.AddVaccineAsync(Vaccine);
+            await VaccineRepository.AddVaccineAsync(VaccineDTO);
 
             await JSRuntime.InvokeVoidAsync("Swal.fire", new
             {

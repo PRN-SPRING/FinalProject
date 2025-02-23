@@ -1,7 +1,7 @@
 ﻿@page "/staff/manage-vaccines"
+@using Data.DTOs
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using Data.Entities
 @using Data
 @using Repository
 @inject IVaccineRepository VaccineRepository
@@ -86,7 +86,7 @@
         margin-bottom: 15px;
     }
 
-        @@media(max - width: 768px) {
+        @@media(max-width: 768px) {
             .table-container {
                 max-height: 300px;
             }
@@ -164,8 +164,8 @@
 @code {
     private PRNFinalProjectDBContext context = default!;
     private string searchQuery = string.Empty;
-    private List<Vaccine> allVaccines = new();
-    private List<Vaccine> filteredVaccines = new();
+    private List<VaccineDTO> allVaccines = new();
+    private List<VaccineDTO> filteredVaccines = new();
 
     protected override async Task OnInitializedAsync()
     {

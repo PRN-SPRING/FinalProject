@@ -1,8 +1,147 @@
-﻿@page "/staff/manage-customer"
+﻿@page "/staff/manage-service"
 @layout FinalProject.Components.Layout.StaffLayout.StaffLayout
+@rendermode InteractiveServer
 
-<h3>ManageCustomer</h3>
+@using Data.Entities
+
+<h2 class="mb-4">Customer Service Management</h2>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <button class="nav-link @(currentTab == "customers" ? "active" : "")" @onclick='() => ChangeTab("customers")'>Customers</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @(currentTab == "children" ? "active" : "")" @onclick='() => ChangeTab("children")'>Children</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @(currentTab == "feedback" ? "active" : "")" @onclick='() => ChangeTab("feedback")'>Feedback</button>
+    </li>
+</ul>
+
+<!-- Content for each tab -->
+<div class="tab-content mt-3">
+    @if (currentTab == "customers")
+    {
+        <h5>Customer List</h5>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Children</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in Customers)
+                {
+                    <tr>
+                        <td>@customer.Id</td>
+                        <td>@customer.FullName</td>
+                        <td>@customer.Email</td>
+                        <td>@customer.PhoneNumber</td>
+                        <td>@customer.Children?.Count</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else if (currentTab == "children")
+    {
+        <h5>Children List</h5>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Birthdate</th>
+                    <th>Gender</th>
+                    <th>Customer</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var child in Children)
+                {
+                    <tr>
+                        <td>@child.Id</td>
+                        <td>@child.FullName</td>
+                        <td>@child.Birthdate.ToShortDateString()</td>
+                        <td>@child.Gender</td>
+                        <td>@child.CustomerId</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else if (currentTab == "feedback")
+    {
+        <h5>Customer Feedback</h5>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Appointment</th>
+                    <th>Rating</th>
+                    <th>Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var feedback in Feedbacks)
+                {
+                    <tr>
+                        <td>@feedback.Id</td>
+                        <td>@feedback.Customer.FullName</td>
+                        <td>@feedback.AppointmentId</td>
+                        <td>@feedback.Rating ⭐</td>
+                        <td>@feedback.Comments</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
 
 @code {
+    private string currentTab = "customers";
 
+    private List<User> Customers = new List<User>();
+    private List<Child> Children = new List<Child>();
+    private List<Feedback> Feedbacks = new List<Feedback>();
+
+    protected override void OnInitialized()
+    {
+        // Initialize the customer list
+        Customers = new List<User>
+        {
+            new User { Id = 1, FullName = "Nguyễn Văn A", Email = "a@gmail.com", PhoneNumber = "0123456789",
+                       Children = new List<Child> { new Child { Id = 1, FullName = "Bé Bảo", Birthdate = new DateTime(2020, 5, 10), CustomerId = 1 } }
+            },
+            new User { Id = 2, FullName = "Trần Thị B", Email = "b@gmail.com", PhoneNumber = "0987654321",
+                       Children = new List<Child> { new Child { Id = 2, FullName = "Bé Lan", Birthdate = new DateTime(2019, 11, 15), CustomerId = 2 } }
+            }
+        };
+
+        // Create the list of children from Customers
+        Children = new List<Child>
+        {
+            new Child { Id = 1, FullName = "Bé Bảo", Birthdate = new DateTime(2020, 5, 10), CustomerId = 1 },
+            new Child { Id = 2, FullName = "Bé Lan", Birthdate = new DateTime(2019, 11, 15), CustomerId = 2 }
+        };
+
+        // Create the feedback list
+        Feedbacks = new List<Feedback>
+        {
+            new Feedback { Id = 1, Customer = Customers.First(c => c.Id == 1), AppointmentId = 1, Rating = 5, Comments = "Excellent service!" },
+            new Feedback { Id = 2, Customer = Customers.First(c => c.Id == 2), AppointmentId = 2, Rating = 4, Comments = "Staff was very friendly!" }
+        };
+    }
+
+    private void ChangeTab(string tab)
+    {
+        currentTab = tab;
+        StateHasChanged(); // Ensure UI updates after tab change
+    }
 }
