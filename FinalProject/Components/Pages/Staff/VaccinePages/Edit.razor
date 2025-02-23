@@ -1,6 +1,6 @@
 ﻿@page "/staff/vaccines/edit"
 @using Microsoft.EntityFrameworkCore
-@using Data.Entities
+@using Data.DTOs
 @using Repository
 @inject IVaccineRepository VaccineRepository
 @inject NavigationManager NavigationManager
@@ -73,7 +73,7 @@
     private int Id { get; set; }
 
     [SupplyParameterFromForm]
-    private Vaccine? Vaccine { get; set; }
+    private VaccineDTO? Vaccine { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

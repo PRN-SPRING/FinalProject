@@ -1,4 +1,5 @@
-﻿using Data.Entities;
+﻿using Data.DTOs;
+using Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace Repository.Interface
 {
     public interface IAppointmentDetailRepository
     {
-        Task AddAppointmentDetailAsync(AppointmentDetail appointmentDetail);
-        Task UpdateAppointmentDetailAsync(AppointmentDetail appointmentDetail);
-        Task<AppointmentDetail> GetAppointmentDetailByAppointmentIdAsync(int appointmentId);
+        Task AddAppointmentDetailAsync(AppointmentDetailDTO appointmentDetail);
+        Task UpdateAppointmentDetailAsync(AppointmentDetailDTO appointmentDetail);
+        Task<AppointmentDetailDTO> GetAppointmentDetailByAppointmentIdAsync(int appointmentId);
     }
 }

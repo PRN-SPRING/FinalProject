@@ -1,4 +1,5 @@
 ﻿@page "/staff/manage-appointment"
+@using Data.DTOs
 @using Data.Entities
 @using Repository.Interface
 @inject IAppointmentRepository AppointmentRepository
@@ -45,10 +46,10 @@
                     @foreach (var appointment in filteredAppointments)
                     {
                         <tr>
-                            <td>@appointment.Customer.FullName</td>
-                            <td>@appointment.Child.FullName</td>
-                            <td>@(appointment.Vaccine?.Name ?? "N/A")</td>
-                            <td>@(appointment.VaccinePackage?.Name ?? "N/A")</td>
+                            <td>@appointment.CustomerName</td>
+                            <td>@appointment.ChildName</td>
+                            <td>@(appointment.VaccineName ?? "N/A")</td>
+                            <td>@(appointment.VaccinePackageName ?? "N/A")</td>
                             <td>@appointment.AppointmentDate.ToString("MM/dd/yyyy")</td>
                             <td>@appointment.Status</td>
                             <td>
@@ -95,7 +96,7 @@
                         <!-- Thông tin cuộc hẹn -->
                         <div class="border p-3 rounded shadow-sm">
                             <h5 class="text-primary mb-3">Appointment Details</h5>
-                            <p><strong>Child:</strong> @(selectedAppointment.Child?.FullName ?? "N/A")</p>
+                            <p><strong>Child:</strong> @(selectedAppointment.ChildName ?? "N/A")</p>
                             <p><strong>Appointment Date:</strong> @selectedAppointment.AppointmentDate.ToString("f")</p>
                             <p>
                                 <strong>Status:</strong>
@@ -109,8 +110,8 @@
                         <!-- Vaccine & Gói vaccine -->
                         <div class="border p-3 rounded shadow-sm mt-3">
                             <h5 class="text-success mb-3">Vaccine Information</h5>
-                            <p><strong>Vaccine:</strong> @(selectedAppointment.Vaccine?.Name ?? "Not selected")</p>
-                            <p><strong>Vaccine Package:</strong> @(selectedAppointment.VaccinePackage?.Name ?? "Not selected")</p>
+                            <p><strong>Vaccine:</strong> @(selectedAppointment.VaccineName ?? "Not selected")</p>
+                            <p><strong>Vaccine Package:</strong> @(selectedAppointment.VaccinePackageName ?? "Not selected")</p>
                         </div>
 
                         <!-- Ngày tiêm -->
@@ -159,7 +160,7 @@
                         <!-- Thông tin chung -->
                         <div class="border p-3 rounded shadow-sm">
                             <h5 class="text-primary mb-3">General Information</h5>
-                            <p><strong>Child:</strong> @selectedAppointmentForDetail.Child?.FullName</p>
+                            <p><strong>Child:</strong> @selectedAppointmentForDetail.ChildName</p>
                             <p><strong>Appointment Date:</strong> @selectedAppointmentForDetail.AppointmentDate.ToString("f")</p>
                             <p>
                                 <strong>Status:</strong>
@@ -194,7 +195,7 @@
                         {
                             <div class="border p-3 rounded shadow-sm mt-3">
                                 <h5 class="text-danger mb-3">Doctor's Report</h5>
-                                <p><strong>Doctor:</strong> @(selectedAppointmentDetail.Doctor.FullName == null ? "N/A" : selectedAppointmentDetail.Doctor.FullName)</p>
+                                <p><strong>Doctor:</strong> @(selectedAppointmentDetail.DoctorName == null ? "N/A" : selectedAppointmentDetail.DoctorName)</p>
                                 <p>
                                     <strong>Status:</strong>
                                     <span class="badge bg-@(selectedAppointmentDetail.Status == "In Progress" ? "info" : "success")">
@@ -220,17 +221,17 @@
 </div>
 
 @code {
-    private List<Appointment> appointments = new List<Appointment>();
-    private List<Appointment> filteredAppointments = new List<Appointment>();
+    private List<AppointmentDTO> appointments = new List<AppointmentDTO>();
+    private List<AppointmentDTO> filteredAppointments = new List<AppointmentDTO>();
     private List<User> doctors = new List<User>();
     private string searchQuery = "";
     private DateTime scheduledDate = DateTime.Now;
 
-    private VaccinationSchedule? selectedVaccinationSchedule;
-    private AppointmentDetail? selectedAppointmentDetail;
+    private VaccinationScheduleDTO? selectedVaccinationSchedule;
+    private AppointmentDetailDTO? selectedAppointmentDetail;
 
-    private Appointment? selectedAppointment = new Appointment();
-    private Appointment? selectedAppointmentForDetail = new Appointment();
+    private AppointmentDTO? selectedAppointment = new AppointmentDTO();
+    private AppointmentDTO? selectedAppointmentForDetail = new AppointmentDTO();
 
     private int? selectedDoctorId;
 
@@ -251,13 +252,13 @@
         else
         {
             filteredAppointments = appointments.Where(a =>
-                a.Customer.FullName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
-                a.Child.FullName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                a.CustomerName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                a.ChildName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(a => a.AppointmentDate).ToList();
         }
     }
 
-    private async Task ShowScheduleModal(Appointment appointment)
+    private async Task ShowScheduleModal(AppointmentDTO appointment)
     {
         if (appointment != null)
         {
@@ -268,7 +269,7 @@
         }
     }
 
-    private async Task ShowDetailsModal(Appointment appointment)
+    private async Task ShowDetailsModal(AppointmentDTO appointment)
     {
         selectedAppointmentForDetail = appointment;
 
@@ -293,7 +294,7 @@
             return;
         }
 
-        var vaccinationSchedule = new VaccinationSchedule
+        var vaccinationSchedule = new VaccinationScheduleDTO
         {
             ChildId = selectedAppointment.ChildId,
             VaccineId = selectedAppointment.VaccineId,
@@ -303,7 +304,7 @@
             AppointmentId = selectedAppointment.Id
         };
 
-        var appointmentDetail = new AppointmentDetail
+        var appointmentDetail = new AppointmentDetailDTO
         {
             AppointmentId = selectedAppointment.Id,
             DoctorId = selectedDoctorId.Value,
@@ -315,7 +316,7 @@
         await SaveVaccinationScheduleAsync(vaccinationSchedule, appointmentDetail);
     }
 
-    private async Task SaveVaccinationScheduleAsync(VaccinationSchedule vaccinationSchedule, AppointmentDetail appointmentDetail)
+    private async Task SaveVaccinationScheduleAsync(VaccinationScheduleDTO vaccinationSchedule, AppointmentDetailDTO appointmentDetail)
     {
         await VaccinationScheduleRepository.AddVaccinationScheduleAsync(vaccinationSchedule);
         await AppointmentDetailRepository.AddAppointmentDetailAsync(appointmentDetail);

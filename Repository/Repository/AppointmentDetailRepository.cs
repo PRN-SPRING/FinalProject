@@ -1,4 +1,5 @@
 ﻿using Data;
+using Data.DTOs;
 using Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interface;
@@ -12,12 +13,21 @@ namespace Repository.Repository
 {
     public class AppointmentDetailRepository : IAppointmentDetailRepository
     {
-        public async Task AddAppointmentDetailAsync(AppointmentDetail appointmentDetail)
+        public async Task AddAppointmentDetailAsync(AppointmentDetailDTO appointmentDetailDto)
         {
             try
             {
                 using (var context = new PRNFinalProjectDBContext())
                 {
+                    var appointmentDetail = new AppointmentDetail
+                    {
+                        AppointmentId = appointmentDetailDto.AppointmentId,
+                        DoctorId = appointmentDetailDto.DoctorId,
+                        Status = appointmentDetailDto.Status,
+                        Diagnosis = appointmentDetailDto.Diagnosis,
+                        Treatment = appointmentDetailDto.Treatment
+                    };
+
                     context.AppointmentDetails.Add(appointmentDetail);
                     await context.SaveChangesAsync();
                 }
@@ -28,15 +38,31 @@ namespace Repository.Repository
             }
         }
 
-        public async Task<AppointmentDetail> GetAppointmentDetailByAppointmentIdAsync(int appointmentId)
+        public async Task<AppointmentDetailDTO> GetAppointmentDetailByAppointmentIdAsync(int appointmentId)
         {
             try
             {
                 using (var context = new PRNFinalProjectDBContext())
                 {
-                    return await context.AppointmentDetails
+                    var appointmentDetail = await context.AppointmentDetails
                         .Include(a => a.Doctor)
                         .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+
+                    if (appointmentDetail == null)
+                    {
+                        throw new Exception("Appointment detail not found");
+                    }
+
+                    return new AppointmentDetailDTO
+                    {
+                        Id = appointmentDetail.Id,
+                        AppointmentId = appointmentDetail.AppointmentId,
+                        DoctorId = appointmentDetail.DoctorId,
+                        Status = appointmentDetail.Status,
+                        Diagnosis = appointmentDetail.Diagnosis,
+                        Treatment = appointmentDetail.Treatment,
+                        DoctorName = appointmentDetail.Doctor?.FullName
+                    };
                 }
             }
             catch (Exception ex)
@@ -45,20 +71,24 @@ namespace Repository.Repository
             }
         }
 
-        public async Task UpdateAppointmentDetailAsync(AppointmentDetail appointmentDetail)
+        public async Task UpdateAppointmentDetailAsync(AppointmentDetailDTO appointmentDetailDto)
         {
             try
             {
                 using (var context = new PRNFinalProjectDBContext())
                 {
-                    var appointmentDetailToUpdate = await context.AppointmentDetails.FindAsync(appointmentDetail.Id);
+                    var appointmentDetailToUpdate = await context.AppointmentDetails.FindAsync(appointmentDetailDto.Id);
 
                     if (appointmentDetailToUpdate == null)
                     {
                         throw new Exception("Appointment detail not found");
                     }
 
-                    context.AppointmentDetails.Update(appointmentDetail);
+                    appointmentDetailToUpdate.Status = appointmentDetailDto.Status;
+                    appointmentDetailToUpdate.Diagnosis = appointmentDetailDto.Diagnosis;
+                    appointmentDetailToUpdate.Treatment = appointmentDetailDto.Treatment;
+                    appointmentDetailToUpdate.DoctorId = appointmentDetailDto.DoctorId;
+
                     await context.SaveChangesAsync();
                 }
             }

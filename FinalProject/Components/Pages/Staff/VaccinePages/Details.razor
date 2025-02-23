@@ -1,6 +1,6 @@
 ﻿@page "/staff/vaccines/details"
 @using Microsoft.EntityFrameworkCore
-@using Data.Entities
+@using Data.DTOs
 @using Repository
 @inject IVaccineRepository VaccineRepository
 @inject NavigationManager NavigationManager
@@ -50,7 +50,7 @@
 </div>
 
 @code {
-    private Vaccine? vaccine;
+    private VaccineDTO? vaccine;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
