@@ -18,7 +18,7 @@
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li class="d-flex justify-content-center" style="margin-left: 0; padding-left: 0;">
-                        <button class="dropdown-item py-2 text-center" style="border: none; background: transparent; width: 100%;">👤 Profile</button>
+                        <button class="dropdown-item py-2 text-center" style="border: none; background: transparent; width: 100%;" data-bs-toggle="modal" data-bs-target="#profileModal">👤 Profile</button>
                     </li>
                     <li class="d-flex justify-content-center" style="margin-left: 0; padding-left: 0;">
                         <button class="dropdown-item py-2 text-center text-danger" style="border: none; background: transparent; width: 100%;">🚪 Logout</button>
@@ -28,6 +28,40 @@
             </div>
         </div>
 
+        <!-- Modal for Profile -->
+        <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content rounded-3 shadow-lg">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="profileModalLabel">User Profile</h5>
+                        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="https://placehold.co/100" class="rounded-circle me-3" alt="User Avatar" />
+                            <div>
+                                <h5 class="mb-0">Nguyen Van A</h5>
+                                <small class="text-muted">Software Developer</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <p><strong>Email:</strong> nguyen.vana@example.com</p>
+                            <p><strong>Phone Number:</strong> 0123456789</p>
+                            <p><strong>Address:</strong> 123 Example Street, Hanoi</p>
+                            <p><strong>Gender:</strong> Male</p>
+                            <p><strong>Birthdate:</strong> 01/01/1980</p>
+                            <p><strong>Position:</strong> Software Developer</p>
+                            <p><strong>Years of Experience:</strong> 5</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <article class="content px-4">
             @Body

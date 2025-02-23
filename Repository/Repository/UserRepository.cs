@@ -1,4 +1,7 @@
-﻿using Repository.Interface;
+﻿using Data;
+using Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using Repository.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,7 +71,7 @@ namespace Repository.Repository
 
             // Check for existing username
             if (await UsernameExistsAsync(username))
-            {
+        {
                 throw new InvalidOperationException("Username already exists");
             }
 
@@ -115,12 +118,12 @@ namespace Repository.Repository
             catch (DbUpdateException ex)
             {
                 throw new InvalidOperationException("Error creating user in database", ex);
+                }
             }
-        }
         private async Task<bool> EmailExistsAsync(string email)
-        {
+            {
             return await _context.Users.AnyAsync(u => u.Email == email);
-        }
+            }
 
         public async Task<bool> UsernameExistsAsync(string username)
         {

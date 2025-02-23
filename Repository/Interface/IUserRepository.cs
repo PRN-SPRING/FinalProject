@@ -16,5 +16,6 @@ namespace Repository.Interface
                 string fullName, string email, string? phoneNumber,
                 string? address, string? gender, string role, DateTime? birthdate);
         Task<bool> UsernameExistsAsync(string username);
+        Task<IEnumerable<User>> GetUsersByRoleAsync(string? role);
     }
 }
