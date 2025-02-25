@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Data.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Repository.Interface;
 using Repository.Repository;
 
@@ -14,6 +16,7 @@ namespace Repository
             services.AddTransient<IAppointmentDetailRepository, AppointmentDetailRepository>();
             services.AddTransient<IVaccinationScheduleRepository, VaccinationScheduleRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
             return services;
         }
     }

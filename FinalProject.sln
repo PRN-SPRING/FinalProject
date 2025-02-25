@@ -7,7 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FinalProject", "FinalProjec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "Data\Data.csproj", "{148A80A1-B47D-4F0F-B658-F857D53694F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repository", "Repository\Repository.csproj", "{048414D8-013A-4EA2-B4AA-9DDE8B4E54C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository", "Repository\Repository.csproj", "{048414D8-013A-4EA2-B4AA-9DDE8B4E54C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{148A80A1-B47D-4F0F-B658-F857D53694F8} = {148A80A1-B47D-4F0F-B658-F857D53694F8}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

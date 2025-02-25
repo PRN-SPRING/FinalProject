@@ -1,7 +1,10 @@
 ﻿using Data;
 using FinalProject.Components;
+using FinalProject.Constants;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Repository;
+using Repository.Interface;
 using Repository.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +20,22 @@ builder.Services.AddDbContextFactory<PRNFinalProjectDBContext>(options =>
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(option =>
+    {
+        option.Cookie.Name = "auth_token";
+        option.LoginPath = "/login";
+        option.LogoutPath = "/logout";
+        option.AccessDeniedPath = "/access-denied";
+        option.ExpireTimeSpan = TimeSpan.FromMinutes(30); 
+        option.SlidingExpiration = true;
+        option.ReturnUrlParameter = "returnUrl";
+    }
+    );
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddAntiforgery();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -32,8 +50,10 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
-
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
