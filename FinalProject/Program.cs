@@ -13,9 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddRepository();
-builder.Services.AddControllers();
-builder.Services.AddDbContext<PRNFinalProjectDBContext>(options =>
-                        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContext<PRNFinalProjectDBContext>(options =>
+//                        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContextFactory<PRNFinalProjectDBContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 

@@ -1,4 +1,5 @@
-﻿using Data.Entities;
+﻿using Data.DTOs;
+using Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace Repository.Interface
 {
     public interface IVaccinationScheduleRepository
     {
-        Task AddVaccinationScheduleAsync(VaccinationSchedule vaccinationSchedule);
-        Task UpdateVaccinationScheduleAsync(VaccinationSchedule vaccinationSchedule);
-        Task<VaccinationSchedule> GetVaccinationScheduleByAppointmentIdAsync(int appointmentId);
+        Task AddVaccinationScheduleAsync(VaccinationScheduleDTO vaccinationSchedule);
+        Task UpdateVaccinationScheduleAsync(VaccinationScheduleDTO vaccinationSchedule);
+        Task<VaccinationScheduleDTO> GetVaccinationScheduleByAppointmentIdAsync(int appointmentId);
     }
 }

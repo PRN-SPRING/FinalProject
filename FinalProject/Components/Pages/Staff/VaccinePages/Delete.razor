@@ -1,10 +1,10 @@
-﻿@page "/vaccines/delete"
+﻿@page "/staff/vaccines/delete"
 @using Microsoft.EntityFrameworkCore
-@using Data.Entities
+@using Data.DTOs
 @using Repository
 @inject IVaccineRepository VaccineRepository
 @inject NavigationManager NavigationManager
-@layout FinalProject.Components.Layout.StaffLayout
+@layout FinalProject.Components.Layout.StaffLayout.StaffLayout
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
@@ -48,7 +48,7 @@
                         <button type="submit" class="btn btn-danger me-2">
                             <i class="bi bi-trash-fill"></i> Delete
                         </button>
-                        <a href="/manage-vaccines" class="btn btn-secondary">
+                        <a href="/staff/manage-vaccines" class="btn btn-secondary">
                             <i class="bi bi-arrow-left"></i> Back to List
                         </a>
                     </EditForm>
@@ -59,7 +59,7 @@
 </div>
 
 @code {
-    private Vaccine? vaccine;
+    private VaccineDTO? vaccine;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -88,7 +88,7 @@
                 confirmButtonText = "OK"
             });
 
-            NavigationManager.NavigateTo("/manage-vaccines");
+            NavigationManager.NavigateTo("/staff/manage-vaccines");
         }
     }
 }

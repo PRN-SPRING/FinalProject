@@ -1,4 +1,5 @@
 ﻿using Data;
+using Data.DTOs;
 using Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
@@ -12,12 +13,21 @@ namespace Repository.Repository
 {
     public class VaccineRepository : IVaccineRepository
     {
-        public async Task AddVaccineAsync(Vaccine vaccine)
+        public async Task AddVaccineAsync(VaccineDTO vaccineDto)
         {
             try
             {
                 using (var db = new PRNFinalProjectDBContext())
                 {
+                    var vaccine = new Vaccine
+                    {
+                        Name = vaccineDto.Name,
+                        Description = vaccineDto.Description,
+                        MinAgeToUse = vaccineDto.MinAgeToUse,
+                        MaxAgeToUse = vaccineDto.MaxAgeToUse,
+                        Price = vaccineDto.Price
+                    };
+
                     await db.Vaccines.AddAsync(vaccine);
                     await db.SaveChangesAsync();
                 }
@@ -50,7 +60,7 @@ namespace Repository.Repository
             }
         }
 
-        public async Task<Vaccine> GetVaccineByIdAsync(int id)
+        public async Task<VaccineDTO> GetVaccineByIdAsync(int id)
         {
             try
             {
@@ -62,7 +72,15 @@ namespace Repository.Repository
                         throw new Exception("Vaccine not found");
                     }
 
-                    return vaccine;
+                    return new VaccineDTO
+                    {
+                        Id = vaccine.Id,
+                        Name = vaccine.Name,
+                        Description = vaccine.Description,
+                        MinAgeToUse = vaccine.MinAgeToUse,
+                        MaxAgeToUse = vaccine.MaxAgeToUse,
+                        Price = vaccine.Price
+                    };
                 }
             }
             catch (Exception ex)
@@ -71,13 +89,23 @@ namespace Repository.Repository
             }
         }
 
-        public async Task<IEnumerable<Vaccine>> GetVaccinesAsync()
+        public async Task<IEnumerable<VaccineDTO>> GetVaccinesAsync()
         {
             try
             {
                 using (var db = new PRNFinalProjectDBContext())
                 {
-                    return await db.Vaccines.ToListAsync();
+                    return await db.Vaccines
+                        .Select(vaccine => new VaccineDTO
+                        {
+                            Id = vaccine.Id,
+                            Name = vaccine.Name,
+                            Description = vaccine.Description,
+                            MinAgeToUse = vaccine.MinAgeToUse,
+                            MaxAgeToUse = vaccine.MaxAgeToUse,
+                            Price = vaccine.Price
+                        })
+                        .ToListAsync();
                 }
             }
             catch (Exception ex)
@@ -86,24 +114,24 @@ namespace Repository.Repository
             }
         }
 
-        public async Task UpdateVaccineAsync(Vaccine vaccine)
+        public async Task UpdateVaccineAsync(VaccineDTO vaccineDto)
         {
             try
             {
                 using (var db = new PRNFinalProjectDBContext())
                 {
-                    var existingVaccine = await db.Vaccines.FindAsync(vaccine.Id);
+                    var existingVaccine = await db.Vaccines.FindAsync(vaccineDto.Id);
                     if (existingVaccine == null)
                     {
                         throw new Exception("Vaccine not found");
                     }
 
                     // Update fields
-                    existingVaccine.Name = vaccine.Name;
-                    existingVaccine.Description = vaccine.Description;
-                    existingVaccine.MinAgeToUse = vaccine.MinAgeToUse;
-                    existingVaccine.MaxAgeToUse = vaccine.MaxAgeToUse;
-                    existingVaccine.Price = vaccine.Price;
+                    existingVaccine.Name = vaccineDto.Name;
+                    existingVaccine.Description = vaccineDto.Description;
+                    existingVaccine.MinAgeToUse = vaccineDto.MinAgeToUse;
+                    existingVaccine.MaxAgeToUse = vaccineDto.MaxAgeToUse;
+                    existingVaccine.Price = vaccineDto.Price;
 
                     db.Vaccines.Update(existingVaccine);
                     await db.SaveChangesAsync();

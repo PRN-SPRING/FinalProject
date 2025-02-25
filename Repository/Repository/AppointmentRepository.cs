@@ -1,4 +1,5 @@
 ﻿using Data;
+using Data.DTOs;
 using Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interface;
@@ -17,7 +18,7 @@ namespace Repository.Repository
             throw new NotImplementedException();
         }
 
-        public Task CreateAppointmentAsync(Appointment appointment)
+        public Task CreateAppointmentAsync(AppointmentDTO appointment)
         {
             throw new NotImplementedException();
         }
@@ -27,7 +28,7 @@ namespace Repository.Repository
             throw new NotImplementedException();
         }
 
-        public async Task<Appointment> GetAppointmentByIdAsync(int id)
+        public async Task<AppointmentDTO> GetAppointmentByIdAsync(int id)
         {
             try
             {
@@ -38,7 +39,21 @@ namespace Repository.Repository
                     {
                         throw new Exception("Appointment not found");
                     }
-                    return appointment;
+                    return new AppointmentDTO
+                    {
+                        Id = appointment.Id,
+                        CustomerId = appointment.CustomerId,
+                        ChildId = appointment.ChildId,
+                        VaccineId = appointment.VaccineId,
+                        VaccinePackageId = appointment.VaccinePackageId,
+                        AppointmentDate = appointment.AppointmentDate,
+                        Status = appointment.Status,
+                        Notes = appointment.Notes,
+                        CustomerName = appointment.Customer.FullName,
+                        ChildName = appointment.Child.FullName,
+                        VaccineName = appointment.Vaccine?.Name,
+                        VaccinePackageName = appointment.VaccinePackage?.Name
+                    };
                 }
             }
             catch (Exception ex)
@@ -47,7 +62,7 @@ namespace Repository.Repository
             }
         }
 
-        public async Task<IEnumerable<Appointment>> GetAppointmentsAsync()
+        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsAsync()
         {
             try
             {
@@ -60,6 +75,21 @@ namespace Repository.Repository
                         .Include(a => a.Vaccine)
                         .Include(a => a.VaccinePackage)
                         .Include(a => a.AppointmentDetails)
+                        .Select(a => new AppointmentDTO
+                        {
+                            Id = a.Id,
+                            CustomerId = a.CustomerId,
+                            ChildId = a.ChildId,
+                            VaccineId = a.VaccineId,
+                            VaccinePackageId = a.VaccinePackageId,
+                            AppointmentDate = a.AppointmentDate,
+                            Status = a.Status,
+                            Notes = a.Notes,
+                            CustomerName = a.Customer.FullName,
+                            ChildName = a.Child.FullName,
+                            VaccineName = a.Vaccine.Name,
+                            VaccinePackageName = a.VaccinePackage.Name
+                        })
                         .ToListAsync();
                 }
             }
@@ -69,19 +99,25 @@ namespace Repository.Repository
             }
         }
 
-        public async Task UpdateAppointmentAsync(Appointment appointment)
+        public async Task UpdateAppointmentAsync(AppointmentDTO appointmentDto)
         {
             try
             {
                 using (var db = new PRNFinalProjectDBContext())
                 {
-                    var existingAppointment = await db.Appointments.FindAsync(appointment.Id);
+                    var existingAppointment = await db.Appointments.FindAsync(appointmentDto.Id);
                     if (existingAppointment == null)
                     {
                         throw new Exception("Appointment not found");
                     }
 
-                    db.Entry(existingAppointment).CurrentValues.SetValues(appointment);
+                    existingAppointment.CustomerId = appointmentDto.CustomerId;
+                    existingAppointment.ChildId = appointmentDto.ChildId;
+                    existingAppointment.VaccineId = appointmentDto.VaccineId;
+                    existingAppointment.VaccinePackageId = appointmentDto.VaccinePackageId;
+                    existingAppointment.AppointmentDate = appointmentDto.AppointmentDate;
+                    existingAppointment.Status = appointmentDto.Status;
+                    existingAppointment.Notes = appointmentDto.Notes;
 
                     await db.SaveChangesAsync();
                 }
