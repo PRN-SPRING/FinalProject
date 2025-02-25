@@ -27,9 +27,9 @@ namespace Repository.Repository
 
         public async Task<User> GetByUsernameAsync(string username)
         {
-            var normalizedUsername = username.ToLower();
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
+                var normalizedUsername = username.ToLower();
+                return await _context.Users
+                    .FirstOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
         }
 
         public async Task<User> GetByIdAsync(int id)
@@ -39,24 +39,21 @@ namespace Repository.Repository
 
         public async Task<bool> AuthenticateAsync(string username, string password)
         {
-            var user = await GetByUsernameAsync(username);
-            if (user == null) return false;
-            string result = password;
-            System.Diagnostics.Debug.WriteLine(result);
-            System.Diagnostics.Debug.WriteLine(username);
-            System.Diagnostics.Debug.WriteLine(user.Password);
-            //var result = _passwordHasher.VerifyHashedPassword(
-            //    user,
-            //    user.Password,
-            //    password);
+                var user = await GetByUsernameAsync(username);
+                if (user == null) return false;
+                var result = _passwordHasher.VerifyHashedPassword(
+                    user,
+                    user.Password,
+                    password);
 
-            if (result.Equals(user.Password))
-            {
-                return true;
-            }
+                if (result == PasswordVerificationResult.Success)
+                {
+                    return true;
+                }
 
-            return false;
+                return false;
         }
+
 
         public async Task<User> CreateUserAsync(string username, string password,
                 string fullName, string email, string? phoneNumber,
@@ -129,6 +126,11 @@ namespace Repository.Repository
         {
             return await _context.Users
                 .AnyAsync(u => u.Username.ToLower() == username.ToLower());
+        }
+
+        public Task<IEnumerable<User>> GetUsersByRoleAsync(string? role)
+        {
+            throw new NotImplementedException();
         }
     }
 }
