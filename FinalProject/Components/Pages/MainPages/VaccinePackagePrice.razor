@@ -1,0 +1,51 @@
+﻿@page "/vaccine-package-prices"
+@using Repository.Interface
+@using Data.Entities
+@inject IVaccinePackageRepository VaccinePackageRepository
+
+<h3>Vaccine Package Prices</h3>
+
+@if (vaccinePackages == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Vaccines</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var package in vaccinePackages)
+            {
+                <tr>
+                    <td>@package.Name</td>
+                    <td>@package.Description</td>
+                    <td>@package.Price</td>
+                    <td>
+                        <ul>
+                            @foreach (var detail in package.PackageDetails)
+                            {
+                                <li>@detail.Vaccine.Name (Quantity: @detail.Quantity)</li>
+                            }
+                        </ul>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<VaccinePackage> vaccinePackages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vaccinePackages = await VaccinePackageRepository.GetAllVaccinePackagesAsync();
+    }
+}

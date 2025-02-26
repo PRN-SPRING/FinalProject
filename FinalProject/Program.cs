@@ -1,6 +1,5 @@
 ﻿using Data;
 using FinalProject.Components;
-using FinalProject.Constants;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Repository;
@@ -53,7 +52,7 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
-app.MapControllers();
+//app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

@@ -1,4 +1,5 @@
-﻿using Data.Entities;
+﻿using Data.DTOs;
+using Data.Entities;
 using Repository.Interface;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,11 @@ namespace Repository.Repository
             throw new NotImplementedException();
         }
 
+        public Task CreateAppointmentAsync(AppointmentDTO appointment)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task DeleteAppointmentAsync(int id)
         {
             throw new NotImplementedException();
@@ -36,6 +42,21 @@ namespace Repository.Repository
         }
 
         public Task UpdateAppointmentAsync(Appointment appointment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateAppointmentAsync(AppointmentDTO appointment)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<AppointmentDTO> IAppointmentRepository.GetAppointmentByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<IEnumerable<AppointmentDTO>> IAppointmentRepository.GetAppointmentsAsync()
         {
             throw new NotImplementedException();
         }

@@ -1,0 +1,46 @@
+﻿@page "/vaccine-prices"
+@using Repository
+@using Data.DTOs
+@inject IVaccineRepository VaccineRepository
+
+<h3>Vaccine Prices</h3>
+
+@if (vaccines == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Min Age</th>
+                <th>Max Age</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var vaccine in vaccines)
+            {
+                <tr>
+                    <td>@vaccine.Name</td>
+                    <td>@vaccine.Description</td>
+                    <td>@vaccine.MinAgeToUse</td>
+                    <td>@vaccine.MaxAgeToUse</td>
+                    <td>@vaccine.Price</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<VaccineDTO> vaccines;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vaccines = await VaccineRepository.GetVaccinesAsync();
+    }
+}

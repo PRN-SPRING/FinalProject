@@ -17,6 +17,7 @@ namespace Repository
             services.AddTransient<IVaccinationScheduleRepository, VaccinationScheduleRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
+            services.AddTransient<IVaccinePackageRepository, VaccinePackageRepository>();
             return services;
         }
     }
