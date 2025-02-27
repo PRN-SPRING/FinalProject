@@ -1,19 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+<div class="d-flex flex-column min-vh-100">
+    <!-- Navbar at the top -->
+    <NavMenu />
+
+    <!-- Page content -->
+    <div class="container flex-grow-1">
+        @Body
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="/about">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+    <!-- Footer at the bottom -->
+    <footer class="bg-light text-center py-3 mt-auto border-top">
+        Footer
+    </footer>
 </div>
 
 <div id="blazor-error-ui">
