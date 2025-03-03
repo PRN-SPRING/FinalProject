@@ -18,6 +18,7 @@ namespace Repository
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddTransient<IVaccinePackageRepository, VaccinePackageRepository>();
+            services.AddTransient<IChildRepository, ChildRepository>();
             return services;
         }
     }

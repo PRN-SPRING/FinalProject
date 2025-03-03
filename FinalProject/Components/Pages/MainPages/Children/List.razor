@@ -1,0 +1,64 @@
+﻿@page "/children"
+@layout FinalProject.Components.Layout.LandingLayout.Landing1
+@using Repository.Interface
+@using Data.Entities
+@using System.Security.Claims
+@inject IChildRepository ChildRepository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<h2>My Children</h2>
+
+@if (Children == null)
+{
+    <p>Loading...</p>
+}
+else if (Children.Count == 0)
+{
+    <p>No child profiles found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Birthdate</th>
+                <th>Gender</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var child in Children)
+            {
+                <tr>
+                    <td>@child.FullName</td>
+                    <td>@child.Birthdate.ToShortDateString()</td>
+                    <td>@child.Gender</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+<a href="/children/create" class="btn btn-secondary">Create Children Profile</a>
+
+@code {
+    private List<Child> Children { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        Children = await ChildRepository.GetChildrenByCustomerIdAsync(int.Parse(userId));
+    }
+    
+}
