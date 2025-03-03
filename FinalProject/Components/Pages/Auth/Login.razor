@@ -1,26 +1,26 @@
 ﻿@page "/login"
-@layout FinalProject.Components.Layout.LoginLayout
+@layout FinalProject.Components.Layout.LandingLayout.Landing1
 @using FinalProject.ViewModel
 @using Repository.Interface
 @inject IUserRepository userRepository;
 @using System.Security.Claims
 @inject NavigationManager navigation;
 
-<div class="row">
-    <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
-        <EditForm Model="@Model" OnValidSubmit="Authenticate" FormName="LoginForm">
-            <DataAnnotationsValidator/>
-            <div class="mb-3 text-center flex-column">
+<div class="container-fluid d-flex justify-content-center align-items-center vh-100">
+    <div class="col-lg-4 p-4 border shadow-sm bg-white rounded login-page">
+        <EditForm Model="@Model" OnValidSubmit="Authenticate">
+            <DataAnnotationsValidator />
+            <div class="mb-3 text-center">
                 <h3>LOGIN</h3>
             </div>
             <div class="mb-3">
                 <label>Username</label>
-                <InputText @bind-Value="Model.Username" class="form-control" placeholder="Username"/>
-                <ValidationMessage For="() => Model.Username"/>
+                <InputText @bind-Value="Model.Username" class="form-control" placeholder="Username" />
+                <ValidationMessage For="() => Model.Username" />
             </div>
             <div class="mb-3">
                 <label>Password</label>
-                <InputText @bind-Value="Model.Password" class="form-control" type="password" placeholder="Password"/>
+                <InputText @bind-Value="Model.Password" class="form-control" type="password" placeholder="Password" />
                 <ValidationMessage For="() => Model.Password" />
             </div>
             <div class="mb-3 text-center">
@@ -33,61 +33,21 @@
     </div>
 </div>
 
-
 <style>
-    h2 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #333;
+    .login-page h3 {
+        text-align: center;
+        color: #333;
     }
 
-    .form-group {
-    margin-bottom: 1rem;
+    .login-page .form-control {
+        width: 100%;
+        padding: 0.75rem;
     }
 
-    .form-control {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 1rem;
+    .login-page .btn-primary {
+        width: 100%;
+        padding: 0.75rem;
     }
-
-    .btn-primary {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: #0d6efd;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    cursor: pointer;
-    margin-bottom: 1rem;
-    }
-
-    .btn-primary:hover {
-    background-color: #0b5ed7;
-    }
-
-    .register-link {
-    text-align: center;
-    }
-
-    .register-link a {
-    color: #0d6efd;
-    text-decoration: none;
-    }
-
-    .register-link a:hover {
-    text-decoration: underline;
-    }
-
-    .error-message {
-    color: red;
-    text-align: center;
-    margin-bottom: 10px;
-    font-size: 14px;
-    }
-
 </style>
 
 @code {
