@@ -17,10 +17,47 @@ namespace Repository.Repository
         {
             throw new NotImplementedException();
         }
-
-        public Task CreateAppointmentAsync(AppointmentDTO appointment)
+        private readonly PRNFinalProjectDBContext _context;
+        public AppointmentRepository(PRNFinalProjectDBContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
+        }
+        public async Task CreateAppointmentAsync(CreateAppointmentDTO appointmentDto)
+        {
+            var appointment = new Appointment
+            {
+                CustomerId = appointmentDto.CustomerId,
+                ChildId = appointmentDto.ChildId,
+                VaccineId = appointmentDto.VaccineId,
+                VaccinePackageId = appointmentDto.VaccinePackageId,
+                AppointmentDate = appointmentDto.AppointmentDate,
+                Status = appointmentDto.Status,
+                Notes = appointmentDto.Notes
+            };
+
+            // Add the appointment to the database
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<List<AppointmentDTO>> GetAppointmentsByUserIdAsync(int userId)
+        {
+            return await _context.Appointments
+                .Where(a => a.CustomerId == userId)
+                .Select(a => new AppointmentDTO
+                {
+                    Id = a.Id,
+                    CustomerId = a.CustomerId,
+                    ChildId = a.ChildId,
+                    ChildName = a.Child.FullName,
+                    VaccineId = a.VaccineId,
+                    VaccineName = a.Vaccine != null ? a.Vaccine.Name : null,
+                    VaccinePackageId = a.VaccinePackageId,
+                    VaccinePackageName = a.VaccinePackage != null ? a.VaccinePackage.Name : null,
+                    AppointmentDate = a.AppointmentDate,
+                    Status = a.Status,
+                    Notes = a.Notes
+                })
+                .ToListAsync();
         }
 
         public Task DeleteAppointmentAsync(int id)

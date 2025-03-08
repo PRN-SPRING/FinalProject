@@ -12,7 +12,8 @@ namespace Repository.Interface
     {
         Task<IEnumerable<AppointmentDTO>> GetAppointmentsAsync();
         Task<AppointmentDTO> GetAppointmentByIdAsync(int id);
-        Task CreateAppointmentAsync(AppointmentDTO appointment);
+        Task CreateAppointmentAsync(CreateAppointmentDTO appointment);
+        Task<List<AppointmentDTO>> GetAppointmentsByUserIdAsync(int userId);
         Task UpdateAppointmentAsync(AppointmentDTO appointment);
         Task DeleteAppointmentAsync(int id);
         Task<bool> AppoinmentExistsAsync(int id);

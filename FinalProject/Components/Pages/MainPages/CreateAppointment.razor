@@ -1,0 +1,134 @@
+﻿@page "/create-appointment"
+@using Repository.Interface
+@using Data.Entities
+@using Data.DTOs
+@using System.Security.Claims
+@inject IChildRepository ChildRepository
+@inject IVaccineRepository VaccineRepository
+@inject IVaccinePackageRepository VaccinePackageRepository
+@inject IAppointmentRepository AppointmentRepository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@layout FinalProject.Components.Layout.LandingLayout.Landing1
+
+<PageTitle>Create Appointment</PageTitle>
+
+<h3>Create Appointment</h3>
+
+<EditForm Model="@appointment" OnValidSubmit="HandleValidSubmit" FormName ="CreateAppointment">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <!-- Select Child -->
+    <div class="form-group">
+        <label for="child">Select Child</label>
+        <InputSelect @bind-Value="appointment.ChildId" class="form-control">
+            <option value="">-- Select Child --</option>
+            @foreach (var child in children)
+            {
+                <option value="@child.Id">@child.FullName</option>
+            }
+        </InputSelect>
+    </div>
+
+    
+    <!-- Select Vaccine -->
+    <div class="form-group">
+        <label for="vaccine">Select Vaccine</label>
+        <InputSelect @bind-Value="selectedVaccineId" class="form-control" >
+            <option value="0">-- Select Vaccine --</option>
+            @foreach (var vaccine in vaccines)
+            {
+                <option value="@vaccine.Id">@vaccine.Name</option>
+            }
+        </InputSelect>
+    </div>
+        
+    <!-- Select Vaccine Package -->
+    <div class="form-group">
+        <label for="vaccinePackage">Select Vaccine Package</label>
+        <InputSelect @bind-Value="selectedVaccinePackageId" class="form-control">
+            <option value="0">-- Select Vaccine Package --</option>
+            @foreach (var package in vaccinePackages)
+            {
+                <option value="@package.Id">@package.Name</option>
+            }
+        </InputSelect>
+    </div>
+        
+    <!-- Appointment Date -->
+    <div class="form-group">
+        <label for="appointmentDate">Appointment Date</label>
+        <InputDate @bind-Value="appointment.AppointmentDate" class="form-control"/>
+    </div>
+
+    <!-- Notes -->
+    <div class="form-group">
+        <label for="notes">Notes</label>
+        <InputTextArea @bind-Value="appointment.Notes" class="form-control" />
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-primary">Create Appointment</button>
+</EditForm>
+
+@code {
+
+    [SupplyParameterFromForm]
+    private CreateAppointmentDTO appointment { get; set; } = new()
+    {
+        VaccineId = null,
+        AppointmentDate = DateTime.Now,
+        VaccinePackageId = null
+    };
+
+
+    private List<Child> children = new List<Child>();
+    private List<VaccineDTO> vaccines = new List<VaccineDTO>();
+    private List<VaccinePackage> vaccinePackages = new List<VaccinePackage>();
+
+    [SupplyParameterFromForm]
+    private int? selectedVaccineId { get; set; } 
+    [SupplyParameterFromForm]
+    private int? selectedVaccinePackageId { get; set; } 
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        // Fetch the list of children, vaccines, and vaccine packages
+        if (!string.IsNullOrEmpty(userId))
+        {
+            children = await ChildRepository.GetChildrenByCustomerIdAsync(int.Parse(userId));
+            appointment.CustomerId = int.Parse(userId);
+        }
+        vaccines = (await VaccineRepository.GetVaccinesAsync()).ToList();
+        vaccinePackages = (await VaccinePackageRepository.GetAllVaccinePackagesAsync()).ToList();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        
+
+        // Create a new AppointmentDTO object and populate it with form data
+        var appointmentDto = new CreateAppointmentDTO
+            {
+                CustomerId = appointment.CustomerId, // Set from the authenticated user
+                ChildId = appointment.ChildId,
+                VaccineId = selectedVaccineId == 0 ? null : selectedVaccineId,
+                VaccinePackageId = selectedVaccinePackageId == 0 ? null : selectedVaccinePackageId,
+                AppointmentDate = appointment.AppointmentDate,
+                Status = "Scheduled", // Default status
+                Notes = appointment.Notes
+            };
+        // Call the repository to create the appointment
+        
+            await AppointmentRepository.CreateAppointmentAsync(appointmentDto);
+            Navigation.NavigateTo("/appointments");
+        
+     
+    }
+}
