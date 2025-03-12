@@ -1,6 +1,6 @@
 ﻿@page "/login"
 @layout FinalProject.Components.Layout.LandingLayout.Landing1
-@using FinalProject.ViewModel
+@using Data.DTOs
 @using Repository.Interface
 @inject IUserRepository userRepository;
 @using System.Security.Claims
@@ -57,7 +57,7 @@
     private string? errorMessage;
 
     [SupplyParameterFromForm]
-    public ViewModel Model { get; set; } = new();
+    public UserDTO Model { get; set; } = new();
 
     private async Task Authenticate() 
     {

@@ -14,10 +14,21 @@
                     <li class="nav-item"><a class="nav-link" href="/vaccine-package-prices">Vắc xin gói</a></li>
                     <li class="nav-item"><a class="nav-link" href="/about">Giới thiệu</a></li>
                 </ul>
-                <div class="ms-lg-3 mt-2 mt-lg-0">
-                    <a class="btn btn-outline-primary me-2" href="/login">Đăng nhập</a>
-                    <a class="btn btn-primary" href="/register">Đăng ký</a>
-                </div>
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="ms-lg-3 mt-2 mt-lg-0">
+                            <a class="btn btn-danger" href="/logout">Đăng xuất</a>
+                        </div>
+                    </Authorized>
+
+                    <NotAuthorized>
+                        <div class="ms-lg-3 mt-2 mt-lg-0">
+                            <a class="btn btn-outline-primary me-2" href="/login">Đăng nhập</a>
+                            <a class="btn btn-primary" href="/register">Đăng ký</a>
+                        </div>
+                    </NotAuthorized>
+                </AuthorizeView>
+                
             </div>
         </div>
     </nav>
