@@ -1,4 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject IHttpContextAccessor HttpContextAccessor
 
 <div class="d-flex flex-column min-vh-100">
     <!-- Navbar -->
@@ -10,33 +13,33 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link active" href="/vaccine-prices">Vắc xin lẻ</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/vaccine-package-prices">Vắc xin gói</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/about">Giới thiệu</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/vaccine-prices">Single Vaccines</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/vaccine-package-prices">Vaccine Packages</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">About Us</a></li>
                 </ul>
-                <AuthorizeView>
-                    <Authorized>
-                        <div class="ms-lg-3 mt-2 mt-lg-0">
-                            <a class="btn btn-danger" href="/logout">Đăng xuất</a>
-                        </div>
-                    </Authorized>
 
-                    <NotAuthorized>
-                        <div class="ms-lg-3 mt-2 mt-lg-0">
-                            <a class="btn btn-outline-primary me-2" href="/login">Đăng nhập</a>
-                            <a class="btn btn-primary" href="/register">Đăng ký</a>
-                        </div>
-                    </NotAuthorized>
-                </AuthorizeView>
-                
+                @if (IsUserAuthenticated())
+                {
+                    <div class="ms-lg-3 mt-2 mt-lg-0 d-flex align-items-center">
+                        <span class="me-3 fw-bold">Hello, @GetUserName()</span>
+                        @* <button class="btn btn-outline-danger" href="/logout">Logout</button> *@
+                        <a class="btn btn-outline-danger" href="/logout">Logout</a>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="ms-lg-3 mt-2 mt-lg-0">
+                        <a class="btn btn-outline-primary me-2" href="/login">Login</a>
+                        <a class="btn btn-primary" href="/register">Register</a>
+                    </div>
+                }
             </div>
         </div>
     </nav>
 
-    
-
     <!-- Page Content -->
-    <div class="container flex-grow-1 my-4">
+    <div class="container-fluid  flex-grow-1 my-4">
         @Body
     </div>
 
@@ -49,3 +52,21 @@
 <!-- Import Bootstrap -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@code {
+    // private void Logout()
+    // {
+    //     Navigation.NavigateTo("/logout", forceLoad: true);
+    // }
+
+    private bool IsUserAuthenticated()
+    {
+        var user = HttpContextAccessor.HttpContext.User;
+        return user.Identity is not null && user.Identity.IsAuthenticated;
+    }
+
+    private string GetUserName()
+    {
+        var user = HttpContextAccessor.HttpContext.User;
+        return user.Identity?.Name ?? "User";
+    }
+}

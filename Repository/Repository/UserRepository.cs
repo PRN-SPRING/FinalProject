@@ -39,19 +39,29 @@ namespace Repository.Repository
 
         public async Task<bool> AuthenticateAsync(string username, string password)
         {
-                var user = await GetByUsernameAsync(username);
-                if (user == null) return false;
-                var result = _passwordHasher.VerifyHashedPassword(
-                    user,
-                    user.Password,
-                    password);
+            //var user = await GetByUsernameAsync(username);
+            //if (user == null) return false;
+            //var result = _passwordHasher.VerifyHashedPassword(
+            //    user,
+            //    user.Password,
+            //    password);
 
-                if (result == PasswordVerificationResult.Success)
-                {
-                    return true;
-                }
+            //if (result == PasswordVerificationResult.Success)
+            //{
+            //    return true;
+            //}
 
-                return false;
+            //return false;
+            var user = await GetByUsernameAsync(username);
+            if (user == null) return false;
+
+            // Directly compare the password (plaintext)
+            if (user.Password == password)
+            {
+                return true;
+            }
+
+            return false;
         }
 
 
@@ -82,7 +92,7 @@ namespace Repository.Repository
             {
                 User user = new User();
                 // Hash password
-                user.Password = _passwordHasher.HashPassword(user, password);
+                user.Password = password;
 
                 // Initialize collections to prevent null reference
                 user.Username = username;
