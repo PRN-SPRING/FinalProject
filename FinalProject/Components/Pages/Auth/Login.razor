@@ -1,7 +1,10 @@
 ﻿@page "/login"
 @layout FinalProject.Components.Layout.LandingLayout.Landing1
 @using FinalProject.ViewModel
+@using Microsoft.AspNetCore.Authentication.Cookies
 @using Repository.Interface
+@using Microsoft.AspNetCore.Authentication;
+@using Microsoft.AspNetCore.Authentication.Cookies;
 @inject IUserRepository userRepository;
 @using System.Security.Claims
 @inject NavigationManager navigation;
@@ -73,7 +76,15 @@
             };
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
+            if (httpContext != null)
+            {
                 await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            }
+            else
+            {
+                errorMessage = "Authentication failed: HttpContext is unavailable.";
+            }
+
 
                 await Task.Delay(1000);
 

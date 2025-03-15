@@ -69,15 +69,7 @@ namespace Repository.Repository
                         throw new Exception("Vaccine not found");
                     }
 
-                    return new VaccineDTO
-                    {
-                        Id = vaccine.Id,
-                        Name = vaccine.Name,
-                        Description = vaccine.Description,
-                        MinAgeToUse = vaccine.MinAgeToUse,
-                        MaxAgeToUse = vaccine.MaxAgeToUse,
-                        Price = vaccine.Price
-                    };
+                    return MapToDTO(vaccine);
                 }
             }
             catch (Exception ex)
@@ -93,15 +85,7 @@ namespace Repository.Repository
                 using (var db = new PRNFinalProjectDBContext())
                 {
                     return await db.Vaccines
-                        .Select(vaccine => new VaccineDTO
-                        {
-                            Id = vaccine.Id,
-                            Name = vaccine.Name,
-                            Description = vaccine.Description,
-                            MinAgeToUse = vaccine.MinAgeToUse,
-                            MaxAgeToUse = vaccine.MaxAgeToUse,
-                            Price = vaccine.Price
-                        })
+                        .Select(vaccine => MapToDTO(vaccine))
                         .ToListAsync();
                 }
             }
@@ -123,7 +107,7 @@ namespace Repository.Repository
                         throw new Exception("Vaccine not found");
                     }
 
-                    // Update fields
+                    // Cập nhật thông tin vaccine
                     existingVaccine.Name = vaccineDto.Name;
                     existingVaccine.Description = vaccineDto.Description;
                     existingVaccine.MinAgeToUse = vaccineDto.MinAgeToUse;
@@ -153,6 +137,19 @@ namespace Repository.Repository
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        private static VaccineDTO MapToDTO(Vaccine vaccine)
+        {
+            return new VaccineDTO
+            {
+                Id = vaccine.Id,
+                Name = vaccine.Name,
+                Description = vaccine.Description,
+                MinAgeToUse = vaccine.MinAgeToUse,
+                MaxAgeToUse = vaccine.MaxAgeToUse,
+                Price = vaccine.Price
+            };
         }
     }
 }

@@ -1,0 +1,95 @@
+﻿@page "/staff/vaccinepackages/details"
+@using Microsoft.EntityFrameworkCore
+@using Repository.Interface
+@using Data.DTOs
+@inject IVaccinePackageRepository VaccinePackageRepository
+@inject NavigationManager NavigationManager
+@layout FinalProject.Components.Layout.StaffLayout.StaffLayout
+@rendermode InteractiveServer
+
+<PageTitle>Details</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Vaccine Package Details</h2>
+        </div>
+        <div class="card-body">
+            @if (vaccinepackage is null)
+            {
+                <div class="text-center">
+                    <p class="text-muted"><em>Loading...</em></p>
+                </div>
+            }
+            else
+            {
+                <dl class="row">
+                    <dt class="col-sm-3 font-weight-bold">Name:</dt>
+                    <dd class="col-sm-9">@vaccinepackage.Name</dd>
+
+                    <dt class="col-sm-3 font-weight-bold">Description:</dt>
+                    <dd class="col-sm-9">@vaccinepackage.Description</dd>
+
+                    <dt class="col-sm-3 font-weight-bold">Price:</dt>
+                    <dd class="col-sm-9">$@vaccinepackage.Price</dd>
+                </dl>
+
+                <h3 class="mt-4">Package Details</h3>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Vaccine Name</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (vaccinepackage.PackageDetails != null && vaccinepackage.PackageDetails.Any())
+                            {
+                                @foreach (var detail in vaccinepackage.PackageDetails)
+                                {
+                                    <tr>
+                                        <td>@detail.VaccineName</td>
+                                        <td>@detail.Quantity</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">No data available</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="@($"/staff/vaccinepackages/edit?id={vaccinepackage.Id}")" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="/staff/manage-vaccinepackages" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private VaccinePackageDTO? vaccinepackage;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        vaccinepackage = await VaccinePackageRepository.GetVaccinePackageByIdAsync(Id);
+
+        if (vaccinepackage is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

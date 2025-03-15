@@ -1,0 +1,97 @@
+﻿@page "/staff/vaccinepackages/delete"
+@using Microsoft.EntityFrameworkCore
+@using Data.DTOs
+@using Repository.Interface
+@inject IVaccinePackageRepository VaccinePackageRepository
+@inject NavigationManager NavigationManager
+@layout FinalProject.Components.Layout.StaffLayout.StaffLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Delete Vaccine Package</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-sm p-4">
+        <h2 class="text-danger">Delete Vaccine Package</h2>
+        <hr />
+
+        @if (vaccinePackage is null)
+        {
+            <div class="d-flex justify-content-center mt-4">
+                <div class="spinner-border text-danger" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <p class="fw-bold">Are you sure you want to delete this package?</p>
+            <dl class="row">
+                <dt class="col-sm-3">Name:</dt>
+                <dd class="col-sm-9">@vaccinePackage.Name</dd>
+
+                <dt class="col-sm-3">Description:</dt>
+                <dd class="col-sm-9">@vaccinePackage.Description</dd>
+
+                <dt class="col-sm-3">Price:</dt>
+                <dd class="col-sm-9">$@vaccinePackage.Price</dd>
+            </dl>
+
+            <EditForm Model="vaccinePackage" OnValidSubmit="DeleteVaccinePackage">
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                    <a href="/staff/manage-vaccinepackages" class="btn btn-secondary">Cancel</a>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    private VaccinePackageDTO? vaccinePackage;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        vaccinePackage = await VaccinePackageRepository.GetVaccinePackageByIdAsync(Id);
+
+        if (vaccinePackage is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteVaccinePackage()
+    {
+        bool isDeleted = await VaccinePackageRepository.DeleteVaccinePackageAsync(Id);
+        if (isDeleted)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Deleted!",
+                text = "Vaccine package has been deleted.",
+                icon = "success",
+                confirmButtonText = "OK"
+            });
+
+            NavigationManager.NavigateTo("/staff/manage-vaccinepackages");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Error!",
+                text = "Failed to delete vaccine package. Please try again.",
+                icon = "error",
+                confirmButtonText = "OK"
+            });
+
+        }
+    }
+
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
