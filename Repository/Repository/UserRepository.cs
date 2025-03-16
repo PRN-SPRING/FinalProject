@@ -138,9 +138,17 @@ namespace Repository.Repository
                 .AnyAsync(u => u.Username.ToLower() == username.ToLower());
         }
 
-        public Task<IEnumerable<User>> GetUsersByRoleAsync(string? role)
+        public async Task<IEnumerable<User>> GetUsersByRoleAsync(string? role)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(role))
+            {
+                return await _context.Users.ToListAsync();
+            }
+
+            return await _context.Users
+                .Where(u => u.Role.ToLower() == role.ToLower())
+                .ToListAsync();
         }
+
     }
 }
