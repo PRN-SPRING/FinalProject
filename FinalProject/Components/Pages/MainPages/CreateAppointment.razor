@@ -15,7 +15,7 @@
 
 <h3>Create Appointment</h3>
 
-<EditForm Model="@appointment" OnValidSubmit="HandleValidSubmit" FormName ="CreateAppointment">
+<EditForm Model="@appointment" OnValidSubmit="HandleValidSubmit" FormName="CreateAppointment">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -32,29 +32,45 @@
     </div>
 
 
-    <!-- Select Vaccine -->
     <div class="form-group">
-        <label for="vaccine">Select Vaccine</label>
-        <InputSelect @bind-Value="selectedVaccineId" class="form-control" >
-            <option value="0">-- Select Vaccine --</option>
-            @foreach (var vaccine in vaccines)
-            {
-                <option value="@vaccine.Id">@vaccine.Name</option>
-            }
-        </InputSelect>
+        <button type="button" class="btn btn-secondary"
+        @onclick="ToggleToVaccine">
+            Select Vaccine
+        </button>
+        <button type="button" class="btn btn-secondary"
+        @onclick="ToggleToVaccinePackage">
+            Select Vaccine Package
+        </button>
     </div>
 
-    <!-- Select Vaccine Package -->
-    <div class="form-group">
-        <label for="vaccinePackage">Select Vaccine Package</label>
-        <InputSelect @bind-Value="selectedVaccinePackageId" class="form-control">
-            <option value="0">-- Select Vaccine Package --</option>
-            @foreach (var package in vaccinePackages)
-            {
-                <option value="@package.Id">@package.Name</option>
-            }
-        </InputSelect>
-    </div>
+
+    @if (isSelectingVaccine)
+    {
+        <div class="form-group">
+            <label for="vaccine">Select Vaccine</label>
+            <InputSelect @bind-Value="selectedVaccineId" class="form-control">
+                <option value="0">-- Select Vaccine --</option>
+                @foreach (var vaccine in vaccines)
+                {
+                    <option value="@vaccine.Id">@vaccine.Name - @vaccine.Price</option>
+                }
+            </InputSelect>
+        </div>
+    }
+
+    @if (isSelectingVaccinePackage)
+    {
+        <div class="form-group">
+            <label for="vaccinePackage">Select Vaccine Package</label>
+            <InputSelect @bind-Value="selectedVaccinePackageId" class="form-control">
+                <option value="0">-- Select Vaccine Package --</option>
+                @foreach (var package in vaccinePackages)
+                {
+                    <option value="@package.Id">@package.Name - @package.Price</option>
+                }
+            </InputSelect>
+        </div>
+    }
 
     <!-- Appointment Date -->
     <div class="form-group">
@@ -68,9 +84,16 @@
         <InputTextArea @bind-Value="appointment.Notes" class="form-control" />
     </div>
 
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="text-danger">
+            @errorMessage
+        </div>
+    }
+
     <!-- Submit Button -->
     @* <button type="submit" class="btn btn-primary">Create Appointment</button> *@
-    <button type="button" class="btn btn-primary" @onclick="ShowTransactionModal">Create Appointment</button>
+    <button type="button" class="btn btn-primary" @onclick="ShowModal" disabled="@(CanSubmit() ? null : "disabled")">Create Appointment</button>
 </EditForm>
 
 <div class="modal @(showModal ? "show d-block" : "d-none")" tabindex="-1" role="dialog">
@@ -84,7 +107,7 @@
             </div>
             <div class="modal-body">
                 <div class="img-placeholder border rounded p-3 mb-2" style="display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                    <img src="https://api.vietqr.io/image/970432-0354031289-Hpzk74d.jpg?accountName=NG%20CONG%20MINH%20TUAN" alt="Transaction Receipt" style="width: 80%; max-height: 100%;" />
+                    <img src="@PaymentUrl" alt="Transaction Receipt" style="width: 80%; max-height: 100%;" />
                 </div>
             </div>
             <div class="modal-footer">
@@ -117,17 +140,54 @@
     [SupplyParameterFromForm]
     private int? selectedVaccineId { get; set; } 
     [SupplyParameterFromForm]
-    private int? selectedVaccinePackageId { get; set; } 
+    private int? selectedVaccinePackageId { get; set; }
+    private bool isSelectingVaccine;
+    private bool isSelectingVaccinePackage;
+    private string errorMessage = "";
 
-    private void ShowTransactionModal()
+    private string PaymentUrl { get; set; } = "";
+
+    // Call this method when you need to show the modal or refresh the payment amount.
+    private async Task LoadPaymentUrl()
     {
+        PaymentUrl = await GeneratePaymentAmount();
+    }
+
+    // Example: Call LoadPaymentUrl when showing the modal
+    private async Task ShowModal()
+    {
+        await LoadPaymentUrl();
         showModal = true;
     }
+
 
     // Close the modal
     private void CloseModal()
     {
         showModal = false;
+    }
+
+    private bool CanSubmit()
+    {
+        return appointment.ChildId > 0 // Ensure a child is selected
+            && (selectedVaccineId.HasValue || selectedVaccinePackageId.HasValue) // Ensure either a vaccine or vaccine package is selected
+            && (!isSelectingVaccine || selectedVaccineId.Value > 0) // Ensure a vaccine is selected if choosing vaccine
+            && (!isSelectingVaccinePackage || selectedVaccinePackageId.Value > 0); // Ensure a vaccine package is selected if choosing package
+    }
+
+    // Toggle methods that also clear the opposing selection
+    private void ToggleToVaccine()
+    {
+        isSelectingVaccine = true;
+        isSelectingVaccinePackage = false;
+        selectedVaccinePackageId = 0; // Reset the vaccine package selection
+    }
+
+    private void ToggleToVaccinePackage()
+    {
+        isSelectingVaccine = false;
+        isSelectingVaccinePackage = true;
+        selectedVaccineId = 0; // Reset the vaccine selection
     }
 
 
@@ -136,6 +196,8 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        isSelectingVaccine = true;
+        isSelectingVaccinePackage = false;
         // Fetch the list of children, vaccines, and vaccine packages
         if (!string.IsNullOrEmpty(userId))
         {
@@ -148,7 +210,7 @@
 
     private async Task HandleValidSubmit()
     {
-        
+
 
         // Create a new AppointmentDTO object and populate it with form data
         var appointmentDto = new CreateAppointmentDTO
@@ -162,12 +224,36 @@
                 Notes = appointment.Notes
             };
         // Call the repository to create the appointment
-        
-            await AppointmentRepository.CreateAppointmentAsync(appointmentDto);
-            Navigation.NavigateTo("/appointments");
-        
-     
+
+        await AppointmentRepository.CreateAppointmentAsync(appointmentDto);
+        Navigation.NavigateTo("/appointments");
+
+
     }
 
+    private async Task<string> GeneratePaymentAmount()
+    {
+        string account = "https://api.vietqr.io/image/970432-0354031289-Hpzk74d.jpg?accountName=NG%20CONG%20MINH%20TUAN";
+        string result = "";
+        try {
+            if (isSelectingVaccine)
+            {
+                var vaccine = await VaccineRepository.GetVaccineByIdAsync(selectedVaccineId.Value);
+                decimal amount = vaccine.Price;
+                result = account + "&amount=" + amount;
+            }
+            else
+            {
+                var package = await VaccinePackageRepository.GetVaccinePackageByIdAsync(selectedVaccinePackageId.Value);
+                decimal amount = package.Price;
+                result = account + "&amount=" + amount;
+            }
+            return result;
+        }
+        catch (InvalidOperationException e){
+            errorMessage = "Must select vaccine or vaccine package";
+            return errorMessage;
+        }
+    }
 
 }
