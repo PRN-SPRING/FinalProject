@@ -33,9 +33,30 @@ namespace Repository.Repository
                     .FirstOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
         }
 
-        public async Task<User> GetByIdAsync(int id)
+        public async Task<UserInfoDTO> GetByIdAsync(int id)
         {
-            return await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return null;
+            }
+
+            return new UserInfoDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                Address = user.Address,
+                Gender = user.Gender,
+                Birthdate = user.Birthdate,
+                Specialty = user.Specialty,
+                LicenseNumber = user.LicenseNumber,
+                Position = user.Position,
+                YearsOfExperience = user.YearsOfExperience
+            };
         }
 
         public async Task<bool> AuthenticateAsync(string username, string password)
@@ -151,11 +172,11 @@ namespace Repository.Repository
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<UserDTO>> GetAllUsers()
+        public async Task<IEnumerable<UserInfoDTO>> GetAllUsers()
         {
             var users = await _context.Users.ToListAsync();
 
-            return users.Select(user => new UserDTO
+            return users.Select(user => new UserInfoDTO
             {
                 Id = user.Id,
                 Username = user.Username,

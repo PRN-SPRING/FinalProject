@@ -10,7 +10,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 @layout FinalProject.Components.Layout.LandingLayout.Landing1
-
+@rendermode InteractiveServer
 <PageTitle>Create Appointment</PageTitle>
 
 <h3>Create Appointment</h3>
@@ -31,7 +31,7 @@
         </InputSelect>
     </div>
 
-    
+
     <!-- Select Vaccine -->
     <div class="form-group">
         <label for="vaccine">Select Vaccine</label>
@@ -43,7 +43,7 @@
             }
         </InputSelect>
     </div>
-        
+
     <!-- Select Vaccine Package -->
     <div class="form-group">
         <label for="vaccinePackage">Select Vaccine Package</label>
@@ -55,7 +55,7 @@
             }
         </InputSelect>
     </div>
-        
+
     <!-- Appointment Date -->
     <div class="form-group">
         <label for="appointmentDate">Appointment Date</label>
@@ -69,8 +69,35 @@
     </div>
 
     <!-- Submit Button -->
-    <button type="submit" class="btn btn-primary">Create Appointment</button>
+    @* <button type="submit" class="btn btn-primary">Create Appointment</button> *@
+    <button type="button" class="btn btn-primary" @onclick="ShowTransactionModal">Create Appointment</button>
 </EditForm>
+
+<div class="modal @(showModal ? "show d-block" : "d-none")" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Transaction</h5>
+                <button type="button" class="close" @onclick="CloseModal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="img-placeholder border rounded p-3 mb-2" style="display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                    <img src="https://api.vietqr.io/image/970432-0354031289-Hpzk74d.jpg?accountName=NG%20CONG%20MINH%20TUAN" alt="Transaction Receipt" style="width: 80%; max-height: 100%;" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button type="button" class="btn btn-success" @onclick="HandleValidSubmit">
+                    I have done the transaction
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="@(showModal ? "modal-backdrop show" : "d-none")"></div>
 
 @code {
 
@@ -86,12 +113,22 @@
     private List<Child> children = new List<Child>();
     private List<VaccineDTO> vaccines = new List<VaccineDTO>();
     private List<VaccinePackage> vaccinePackages = new List<VaccinePackage>();
-
+    private bool showModal = false;
     [SupplyParameterFromForm]
     private int? selectedVaccineId { get; set; } 
     [SupplyParameterFromForm]
     private int? selectedVaccinePackageId { get; set; } 
 
+    private void ShowTransactionModal()
+    {
+        showModal = true;
+    }
+
+    // Close the modal
+    private void CloseModal()
+    {
+        showModal = false;
+    }
 
 
     protected override async Task OnInitializedAsync()
@@ -131,4 +168,6 @@
         
      
     }
+
+
 }

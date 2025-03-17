@@ -1,4 +1,5 @@
 ﻿@page "/staff/manage-vaccinepackages"
+@attribute [Authorize(Roles = "Staff")]
 @using Data.DTOs
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid

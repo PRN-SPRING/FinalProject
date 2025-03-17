@@ -1,4 +1,5 @@
 ﻿@page "/staff/manage-service"
+@attribute [Authorize(Roles = "Staff")]
 @layout FinalProject.Components.Layout.StaffLayout.StaffLayout
 @rendermode InteractiveServer
 
@@ -169,8 +170,8 @@
 @code {
     private string currentTab = "customers";
 
-    private List<UserDTO> Customers = new List<UserDTO>();
-    private List<UserDTO> SearchResults = new List<UserDTO>();
+    private List<UserInfoDTO> Customers = new List<UserInfoDTO>();
+    private List<UserInfoDTO> SearchResults = new List<UserInfoDTO>();
     private List<ChildDTO> Children = new List<ChildDTO>();
     private List<ChildDTO> SearchChildrenl = new List<ChildDTO>();
     private List<FeedbackDTO> Feedbacks = new List<FeedbackDTO>();
@@ -241,7 +242,7 @@
         }
     }
 
-    private async Task ShowCustomerDetail(UserDTO customer)
+    private async Task ShowCustomerDetail(UserInfoDTO customer)
     {
         try
         {
