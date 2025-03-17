@@ -2,9 +2,29 @@
 @layout FinalProject.Components.Layout.StaffLayout.StaffLayout
 @rendermode InteractiveServer
 
+@using Data.DTOs
 @using Data.Entities
+@using Repository.Interface
+@inject IFeedbackRepository FeedbackRepository
+@inject IUserRepository UserRepository
+@inject IChildRepository ChildRepository
+@inject IJSRuntime JS
 
 <PageTitle>Customer Service Management</PageTitle>
+
+<style>
+    .table-container {
+        max-height: 400px; /* Giới hạn chiều cao */
+        overflow-y: auto; /* Kích hoạt cuộn dọc khi quá nhiều hàng */
+        border: 1px solid #ddd; /* Tạo viền để dễ nhìn */
+    }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+</style>
 
 <h2 class="mb-4">Customer Service Management</h2>
 
@@ -25,120 +45,154 @@
 <div class="tab-content mt-3">
     @if (currentTab == "customers")
     {
-        <h5>Customer List</h5>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone Number</th>
-                    <th>Children</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var customer in Customers)
-                {
+        <div class="mb-3 d-flex">
+            <div class="input-group">
+                <input type="text" @bind="customerSearchTerm" placeholder="Search Customers..." class="form-control" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="SearchCustomers">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td>@customer.Id</td>
-                        <td>@customer.FullName</td>
-                        <td>@customer.Email</td>
-                        <td>@customer.PhoneNumber</td>
-                        <td>@customer.Children?.Count</td>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone Number</th>
+                        <th>Action</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (Customers != null)
+                    {
+                        @foreach (var customer in SearchResults)
+                        {
+                            <tr>
+                                <td>@customer.Id</td>
+                                <td>@customer.FullName</td>
+                                <td>@customer.Email</td>
+                                <td>@customer.PhoneNumber</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm" @onclick="() => ShowCustomerDetail(customer)">
+                                        📄 Detail
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
     }
     else if (currentTab == "children")
     {
-        <h5>Children List</h5>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Birthdate</th>
-                    <th>Gender</th>
-                    <th>Customer</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var child in Children)
-                {
+        <div class="mb-3 d-flex">
+            <div class="input-group">
+                <input type="text" @bind="childSearchTerm" placeholder="Search Children..." class="form-control" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="SearchChildren">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td>@child.Id</td>
-                        <td>@child.FullName</td>
-                        <td>@child.Birthdate.ToShortDateString()</td>
-                        <td>@child.Gender</td>
-                        <td>@child.CustomerId</td>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Birthdate</th>
+                        <th>Gender</th>
+                        <th>Customer</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var child in SearchChildrenl)
+                    {
+                        <tr>
+                            <td>@child.Id</td>
+                            <td>@child.FullName</td>
+                            <td>@child.Birthdate.ToShortDateString()</td>
+                            <td>@child.Gender</td>
+                            <td>@child.CustomerName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
     else if (currentTab == "feedback")
     {
-        <h5>Customer Feedback</h5>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Customer</th>
-                    <th>Appointment</th>
-                    <th>Rating</th>
-                    <th>Comments</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var feedback in Feedbacks)
-                {
+        <div class="mb-3 d-flex">
+            <div class="input-group">
+                <input type="text" @bind="feedbackSearchTerm" placeholder="Search Feedback..." class="form-control" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="SearchFeedbacks">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td>@feedback.Id</td>
-                        <td>@feedback.Customer.FullName</td>
-                        <td>@feedback.AppointmentId</td>
-                        <td>@feedback.Rating ⭐</td>
-                        <td>@feedback.Comments</td>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Appointment</th>
+                        <th>Rating</th>
+                        <th>Comments</th>
+                        <th>Action</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var feedback in SearchFeedbacksl)
+                    {
+                        <tr>
+                            <td>@feedback.Id</td>
+                            <td>@feedback.CustomerName</td>
+                            <td>@feedback.AppointmentId</td>
+                            <td>@feedback.Rating ⭐</td>
+                            <td>@(feedback.Comments.Length > 50 ? feedback.Comments.Substring(0, 50) + "..." : feedback.Comments)</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteFeedback(feedback.Id)">
+                                    🗑️ Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
 </div>
 
 @code {
     private string currentTab = "customers";
 
-    private List<User> Customers = new List<User>();
-    private List<Child> Children = new List<Child>();
-    private List<Feedback> Feedbacks = new List<Feedback>();
+    private List<UserDTO> Customers = new List<UserDTO>();
+    private List<UserDTO> SearchResults = new List<UserDTO>();
+    private List<ChildDTO> Children = new List<ChildDTO>();
+    private List<ChildDTO> SearchChildrenl = new List<ChildDTO>();
+    private List<FeedbackDTO> Feedbacks = new List<FeedbackDTO>();
+    private List<FeedbackDTO> SearchFeedbacksl = new List<FeedbackDTO>();
+    private string customerSearchTerm = "";
+    private string childSearchTerm = "";
+    private string feedbackSearchTerm = "";
 
-    protected override void OnInitialized()
+
+    protected override async Task OnInitializedAsync()
     {
         // Initialize the customer list
-        Customers = new List<User>
-        {
-            new User { Id = 1, FullName = "Nguyễn Văn A", Email = "a@gmail.com", PhoneNumber = "0123456789",
-                       Children = new List<Child> { new Child { Id = 1, FullName = "Bé Bảo", Birthdate = new DateTime(2020, 5, 10), CustomerId = 1 } }
-            },
-            new User { Id = 2, FullName = "Trần Thị B", Email = "b@gmail.com", PhoneNumber = "0987654321",
-                       Children = new List<Child> { new Child { Id = 2, FullName = "Bé Lan", Birthdate = new DateTime(2019, 11, 15), CustomerId = 2 } }
-            }
-        };
+        Customers = (await UserRepository.GetAllUsers()).ToList();
+        SearchResults = Customers;
 
         // Create the list of children from Customers
-        Children = new List<Child>
-        {
-            new Child { Id = 1, FullName = "Bé Bảo", Birthdate = new DateTime(2020, 5, 10), CustomerId = 1 },
-            new Child { Id = 2, FullName = "Bé Lan", Birthdate = new DateTime(2019, 11, 15), CustomerId = 2 }
-        };
+        Children = (await ChildRepository.GetAllChildrenAsync()).ToList();
+        SearchChildrenl = Children;
 
         // Create the feedback list
-        Feedbacks = new List<Feedback>
-        {
-            new Feedback { Id = 1, Customer = Customers.First(c => c.Id == 1), AppointmentId = 1, Rating = 5, Comments = "Excellent service!" },
-            new Feedback { Id = 2, Customer = Customers.First(c => c.Id == 2), AppointmentId = 2, Rating = 4, Comments = "Staff was very friendly!" }
-        };
+        Feedbacks = (await FeedbackRepository.GetAllFeedbacksAsync()).ToList();
+        SearchFeedbacksl = Feedbacks;
     }
 
     private void ChangeTab(string tab)
@@ -146,4 +200,128 @@
         currentTab = tab;
         StateHasChanged(); // Ensure UI updates after tab change
     }
+
+    private async Task DeleteFeedback(int feedbackId)
+    {
+        // Show confirmation dialog
+        var confirm = await JS.InvokeAsync<object>("Swal.fire", new
+        {
+            title = "Confirm Deletion",
+            text = "Are you sure you want to delete this feedback?",
+            icon = "warning",
+            showCancelButton = true,
+            confirmButtonText = "Delete",
+            cancelButtonText = "Cancel"
+        });
+
+        if (confirm == null || !((bool?)((System.Text.Json.JsonElement)confirm).GetProperty("isConfirmed").GetBoolean()) == true)
+        {
+            return;
+        }
+
+        bool isDeleted = await FeedbackRepository.DeleteFeedbackAsync(feedbackId);
+
+        if (isDeleted)
+        {
+            Feedbacks.RemoveAll(f => f.Id == feedbackId);
+            StateHasChanged();
+
+            // Show success notification
+            await JS.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Success!",
+                text = "The feedback has been deleted.",
+                icon = "success",
+                confirmButtonText = "OK"
+            });
+        }
+        else
+        {
+            Console.WriteLine("Delete failure!");
+        }
+    }
+
+    private async Task ShowCustomerDetail(UserDTO customer)
+    {
+        try
+        {
+            await Task.Yield();
+            await JS.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Customer Details",
+                html = $@"
+                <div style='text-align: left; font-family: monospace;'>
+                    <b>Username:</b> {customer.Username}<br>
+                    <b>Full Name:</b> {customer.FullName}<br>
+                    <b>Email:</b> {customer.Email}<br>
+                    <b>Phone Number:</b> {customer.PhoneNumber}<br>
+                    <b>Address:</b> {customer.Address}<br>
+                    <b>Gender:</b> {customer.Gender}<br>
+                    <b>Birthdate:</b> {customer.Birthdate?.ToShortDateString()}<br>
+                    <b>Specialty:</b> {customer.Specialty}<br>
+                    <b>License Number:</b> {customer.LicenseNumber}<br>
+                    <b>Position:</b> {customer.Position}<br>
+                    <b>Years of Experience:</b> {customer.YearsOfExperience}
+                </div>
+            ",
+                icon = "info",
+                confirmButtonText = "OK"
+            });
+        }
+        catch (JSException ex)
+        {
+            Console.WriteLine($"JS Exception in ShowCustomerDetail: {ex.Message}");
+        }
+    }
+
+    private void SearchCustomers()
+    {
+        if (string.IsNullOrEmpty(customerSearchTerm))
+        {
+            SearchResults = Customers;
+        }
+        else
+        {
+            SearchResults = Customers.Where(c =>
+                (!string.IsNullOrEmpty(c.FullName) && c.FullName.Contains(customerSearchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.Email) && c.Email.Contains(customerSearchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.PhoneNumber) && c.PhoneNumber.Contains(customerSearchTerm, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+        }
+    }
+
+    private void SearchChildren()
+    {
+        if (string.IsNullOrEmpty(childSearchTerm))
+        {
+            SearchChildrenl = Children;
+        }
+        else
+        {
+            SearchChildrenl = Children.Where(c =>
+                    c.FullName.Contains(childSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    c.CustomerName.Contains(childSearchTerm, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+        }
+    }
+
+    private void SearchFeedbacks()
+    {
+        if (string.IsNullOrEmpty(feedbackSearchTerm))
+        {
+            SearchFeedbacksl = Feedbacks;
+        }
+        else
+        {
+            SearchFeedbacksl = Feedbacks.Where(f =>
+                    f.CustomerName.Contains(feedbackSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    f.Comments.Contains(feedbackSearchTerm, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+        }
+    }
+
 }
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+

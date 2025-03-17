@@ -48,7 +48,8 @@ namespace Repository.Repository
 
                     if (vaccinationSchedule == null)
                     {
-                        throw new Exception("Vaccination schedule not found");
+                        //throw new Exception("Vaccination schedule not found");
+                        return null;
                     }
 
                     return new VaccinationScheduleDTO

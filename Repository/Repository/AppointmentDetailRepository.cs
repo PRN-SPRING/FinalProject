@@ -50,7 +50,8 @@ namespace Repository.Repository
 
                     if (appointmentDetail == null)
                     {
-                        throw new Exception("Appointment detail not found");
+                        //throw new Exception("Appointment detail not found");
+                        return null;
                     }
 
                     return new AppointmentDetailDTO

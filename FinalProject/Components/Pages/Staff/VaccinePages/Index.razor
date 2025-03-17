@@ -136,7 +136,7 @@
                             <tr>
                                 <td>@vaccine.Name</td>
                                 <td>
-                                    @(vaccine.Description.Length > 100 ? vaccine.Description.Substring(0, 100) + "..." : vaccine.Description)
+                                    @(vaccine.Description.Length > 50 ? vaccine.Description.Substring(0, 50) + "..." : vaccine.Description)
                                 </td>
                                 <td>@vaccine.MinAgeToUse</td>
                                 <td>@vaccine.MaxAgeToUse</td>

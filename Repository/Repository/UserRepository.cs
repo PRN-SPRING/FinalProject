@@ -1,5 +1,10 @@
 ﻿using Data;
+using Data;
+using Data.DTOs;
 using Data.Entities;
+using Data.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interface;
 using System;
@@ -7,10 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Data;
-using Data.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Repository.Repository
 {
@@ -150,5 +151,26 @@ namespace Repository.Repository
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<UserDTO>> GetAllUsers()
+        {
+            var users = await _context.Users.ToListAsync();
+
+            return users.Select(user => new UserDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                Address = user.Address,
+                Gender = user.Gender,
+                Birthdate = user.Birthdate,
+                Specialty = user.Specialty,
+                LicenseNumber = user.LicenseNumber,
+                Position = user.Position,
+                YearsOfExperience = user.YearsOfExperience
+            });
+        }
     }
 }

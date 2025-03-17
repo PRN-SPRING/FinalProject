@@ -1,4 +1,5 @@
-﻿using Data.Entities;
+﻿using Data.DTOs;
+using Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +18,6 @@ namespace Repository.Interface
                 string? address, string? gender, string role, DateTime? birthdate);
         Task<bool> UsernameExistsAsync(string username);
         Task<IEnumerable<User>> GetUsersByRoleAsync(string? role);
+        Task<IEnumerable<UserDTO>> GetAllUsers();
     }
 }
