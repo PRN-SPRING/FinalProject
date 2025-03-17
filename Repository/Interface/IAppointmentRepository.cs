@@ -17,5 +17,8 @@ namespace Repository.Interface
         Task UpdateAppointmentAsync(AppointmentDTO appointment);
         Task DeleteAppointmentAsync(int id);
         Task<bool> AppoinmentExistsAsync(int id);
+
+        Task<List<AppointmentDTO>> GetAppointmentsByDoctorIdAsync(int id);
+        
     }
 }

@@ -1,0 +1,67 @@
+﻿@page "/doctor/appointments"
+@using Repository.Interface
+@using Data.DTOs
+@using System.Security.Claims
+@inject IAppointmentRepository AppointmentRepository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@layout FinalProject.Components.Layout.LandingLayout.Landing1
+<PageTitle>Home - My Appointments</PageTitle>
+
+<h3>Welcome to the Appointment System</h3>
+
+@if (appointments == null)
+{
+    <p>Loading appointments...</p>
+}
+else if (!appointments.Any())
+{
+    <p>You have no upcoming appointments.</p>
+}
+else
+{
+    <h4>Your Upcoming Appointments</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Child Name</th>
+                <th>Appointment Date</th>
+                <th>Vaccine</th>
+                <th>Vaccine Package</th>
+                <th>Status</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appointment in appointments)
+            {
+                <tr>
+                    <td>@appointment.ChildName</td>
+                    <td>@appointment.AppointmentDate.ToShortDateString()</td>
+                    <td>@appointment.VaccineName</td>
+                    <td>@appointment.VaccinePackageName</td>
+                    <td>@appointment.Status</td>
+                    <td>@appointment.Notes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a class="btn btn-primary" href="/doctor/create-appointment">Create a New Appointment</a>
+
+@code {
+    private List<AppointmentDTO> appointments = new List<AppointmentDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            appointments = await AppointmentRepository.GetAppointmentsByDoctorIdAsync(int.Parse(userId));
+        }
+    }
+}

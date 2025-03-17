@@ -164,5 +164,56 @@ namespace Repository.Repository
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<AppointmentDTO>> GetAppointmentsByDoctorIdAsync(int doctorId)
+        {
+            try
+            {
+                using (var db = new PRNFinalProjectDBContext())
+                {
+                    // Get all AppointmentIds linked to the given DoctorId in AppointmentDetails table
+                    var appointmentIds = await db.AppointmentDetails
+                        .Where(ad => ad.DoctorId == doctorId)
+                        .Select(ad => ad.AppointmentId)
+                        .ToListAsync();
+
+                    if (!appointmentIds.Any())
+                    {
+                        throw new Exception("No appointments found for this doctor.");
+                    }
+
+                    // Retrieve all Appointments that match the AppointmentIds
+                    var appointments = await db.Appointments
+                        .Where(a => appointmentIds.Contains(a.Id))
+                        .Include(a => a.Customer)
+                        .Include(a => a.Child)
+                        .Include(a => a.Vaccine)
+                        .Include(a => a.VaccinePackage)
+                        .ToListAsync();
+
+                    // Map to DTO
+                    return appointments.Select(appointment => new AppointmentDTO
+                    {
+                        Id = appointment.Id,
+                        CustomerId = appointment.CustomerId,
+                        ChildId = appointment.ChildId,
+                        VaccineId = appointment.VaccineId,
+                        VaccinePackageId = appointment.VaccinePackageId,
+                        AppointmentDate = appointment.AppointmentDate,
+                        Status = appointment.Status,
+                        Notes = appointment.Notes,
+                        CustomerName = appointment.Customer?.FullName,
+                        ChildName = appointment.Child?.FullName,
+                        VaccineName = appointment.Vaccine?.Name,
+                        VaccinePackageName = appointment.VaccinePackage?.Name
+                    }).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
     }
 }
