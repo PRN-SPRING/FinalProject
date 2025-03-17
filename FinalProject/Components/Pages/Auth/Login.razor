@@ -37,18 +37,18 @@
 
 <style>
     .login-page h3 {
-        text-align: center;
-        color: #333;
+    text-align: center;
+    color: #333;
     }
 
     .login-page .form-control {
-        width: 100%;
-        padding: 0.75rem;
+    width: 100%;
+    padding: 0.75rem;
     }
 
     .login-page .btn-primary {
-        width: 100%;
-        padding: 0.75rem;
+    width: 100%;
+    padding: 0.75rem;
     }
 </style>
 
@@ -61,20 +61,20 @@
     [SupplyParameterFromForm]
     public UserDTO Model { get; set; } = new();
 
-    private async Task Authenticate() 
+    private async Task Authenticate()
     {
-            var isAuthenticated = await userRepository.AuthenticateAsync(Model.Username, Model.Password);
-            if (isAuthenticated)
-            {
-                var user = await userRepository.GetByUsernameAsync(Model.Username);
-                var claims = new List<Claim>
+        var isAuthenticated = await userRepository.AuthenticateAsync(Model.Username, Model.Password);
+        if (isAuthenticated)
+        {
+            var user = await userRepository.GetByUsernameAsync(Model.Username);
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, Model.Username),
                 new Claim(ClaimTypes.Role, user.Role),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
             if (httpContext != null)
             {
                 await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
@@ -84,14 +84,18 @@
                 errorMessage = "Authentication failed: HttpContext is unavailable.";
             }
 
-
-                await Task.Delay(1000);
-
-                   navigation.NavigateTo("/");
-            }
-            else
+            if (user.Role == "Staff")
             {
-                errorMessage = "Invalid username or password. Please try again.";
+                await Task.Delay(1000);
+                navigation.NavigateTo("/staff/home");
             }
+
+            await Task.Delay(1000);
+            navigation.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = "Invalid username or password. Please try again.";
+        }
     }
 }
