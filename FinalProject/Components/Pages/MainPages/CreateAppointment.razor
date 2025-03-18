@@ -136,6 +136,12 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
         // Fetch the list of children, vaccines, and vaccine packages
         if (!string.IsNullOrEmpty(userId))
         {
@@ -158,7 +164,7 @@
                 VaccineId = selectedVaccineId == 0 ? null : selectedVaccineId,
                 VaccinePackageId = selectedVaccinePackageId == 0 ? null : selectedVaccinePackageId,
                 AppointmentDate = appointment.AppointmentDate,
-                Status = "Scheduled", // Default status
+                Status = "Created", // Default status
                 Notes = appointment.Notes
             };
         // Call the repository to create the appointment
