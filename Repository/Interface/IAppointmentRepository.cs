@@ -19,6 +19,8 @@ namespace Repository.Interface
         Task<bool> AppoinmentExistsAsync(int id);
 
         Task<List<AppointmentDTO>> GetAppointmentsByDoctorIdAsync(int id);
-        
+        Task<string> CreateAppointmentForDoctorAsync(CreateAppointmentDTO appointmentDto, AppointmentDetailDTO appointmentDetailDto, int doctorId);
+
+
     }
 }

@@ -5,11 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Repository.Interface;
 
-
 namespace Repository.Repository
 {
     public class VaccineRepository : IVaccineRepository
     {
+        private readonly PRNFinalProjectDBContext _context;
+
+        public VaccineRepository(PRNFinalProjectDBContext context)
+        {
+            _context = context;
+        }
         public async Task AddVaccineAsync(VaccineDTO vaccineDto)
         {
             try
@@ -151,5 +156,22 @@ namespace Repository.Repository
                 Price = vaccine.Price
             };
         }
+
+        public async Task<List<VaccineDTO>> GetAllVaccinesAsync()
+        {
+            return await _context.Vaccines
+                .Select(vaccine => new VaccineDTO
+                {
+                    Id = vaccine.Id,
+                    Name = vaccine.Name,
+                    Description = vaccine.Description,
+                    MinAgeToUse = vaccine.MinAgeToUse,
+                    MaxAgeToUse = vaccine.MaxAgeToUse,
+                    Price = vaccine.Price
+                })
+                .ToListAsync();
+        }
+
+
     }
 }

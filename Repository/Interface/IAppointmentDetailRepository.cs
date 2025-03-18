@@ -13,5 +13,7 @@ namespace Repository.Interface
         Task AddAppointmentDetailAsync(AppointmentDetailDTO appointmentDetail);
         Task UpdateAppointmentDetailAsync(AppointmentDetailDTO appointmentDetail);
         Task<AppointmentDetailDTO> GetAppointmentDetailByAppointmentIdAsync(int appointmentId);
+
+        Task CreateAppointmentDetailAsync(AppointmentDetailDTO detail);
     }
 }

@@ -9,6 +9,8 @@ namespace Repository.Interface
         Task AddVaccineAsync(VaccineDTO vaccine);
         Task UpdateVaccineAsync(VaccineDTO vaccine);
         Task DeleteVaccineAsync(int id);
-        Task<bool> VaccineExistsAsync(int id);  
+        Task<bool> VaccineExistsAsync(int id);
+        Task<List<VaccineDTO>> GetAllVaccinesAsync();
+
     }
 }

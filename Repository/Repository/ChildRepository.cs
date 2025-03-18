@@ -42,5 +42,21 @@ namespace Repository.Repository
                 .Where(c => c.CustomerId == customerId)
                 .ToListAsync();
         }
+
+        public async Task<List<ChildDTO>> GetChildrenByUserIdAsync(int customerId)
+        {
+            return await _context.Children
+                .Where(c => c.CustomerId == customerId)
+                .Select(c => new ChildDTO
+                {
+                    Id = c.Id,
+                    CustomerId = c.CustomerId,
+                    CustomerName = c.Customer.FullName, // Assuming `Customer` has `FullName`
+                    FullName = c.FullName,
+                    Birthdate = c.Birthdate,
+                    Gender = c.Gender
+                })
+                .ToListAsync();
+        }
     }
 }

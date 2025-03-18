@@ -215,5 +215,84 @@ namespace Repository.Repository
             }
         }
 
+        public async Task<string> CreateAppointmentForDoctorAsync(CreateAppointmentDTO appointmentDto, AppointmentDetailDTO appointmentDetailDto, int doctorId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Validate Customer
+                var customer = await _context.Users.FindAsync(appointmentDto.CustomerId);
+                if (customer == null) return "Invalid customer.";
+
+                // Validate Child and ensure it belongs to the Customer
+                var child = await _context.Children
+                    .FirstOrDefaultAsync(c => c.Id == appointmentDto.ChildId && c.CustomerId == appointmentDto.CustomerId);
+                if (child == null) return "Invalid child or child does not belong to the customer.";
+
+                // Validate Vaccine or Vaccine Package (optional logic from earlier)
+                if (appointmentDto.VaccineId != null && appointmentDto.VaccinePackageId != null)
+                    return "You cannot select both a vaccine and a vaccine package.";
+                if (appointmentDto.VaccineId != null && !await _context.Vaccines.AnyAsync(v => v.Id == appointmentDto.VaccineId))
+                    return "Selected vaccine does not exist.";
+                if (appointmentDto.VaccinePackageId != null && !await _context.VaccinePackages.AnyAsync(p => p.Id == appointmentDto.VaccinePackageId))
+                    return "Selected vaccine package does not exist.";
+
+                // Create Appointment
+                var appointment = new Appointment
+                {
+                    CustomerId = appointmentDto.CustomerId,
+                    ChildId = appointmentDto.ChildId,
+                    VaccineId = appointmentDto.VaccineId,
+                    VaccinePackageId = appointmentDto.VaccinePackageId,
+                    AppointmentDate = appointmentDto.AppointmentDate,
+                    Status = appointmentDto.Status,
+                    Notes = appointmentDto.Notes
+                };
+
+                _context.Appointments.Add(appointment);
+                await _context.SaveChangesAsync();
+
+                // Create AppointmentDetail
+                var appointmentDetail = new AppointmentDetail
+                {
+                    AppointmentId = appointment.Id,
+                    DoctorId = doctorId,
+                    Status = appointmentDetailDto.Status,
+                    Diagnosis = appointmentDetailDto.Diagnosis,
+                    Treatment = appointmentDetailDto.Treatment
+                };
+
+                _context.AppointmentDetails.Add(appointmentDetail);
+                await _context.SaveChangesAsync();
+
+                // Optionally create VaccinationSchedule (if required)
+                if (appointmentDto.VaccineId != null || appointmentDto.VaccinePackageId != null)
+                {
+                    var schedule = new VaccinationSchedule
+                    {
+                        ChildId = appointmentDto.ChildId,
+                        VaccineId = appointmentDto.VaccineId,
+                        VaccinePackageId = appointmentDto.VaccinePackageId,
+                        ScheduledDate = appointmentDto.AppointmentDate,
+                        Status = "Scheduled",
+                        AppointmentId = appointment.Id
+                    };
+                    _context.VaccinationSchedules.Add(schedule);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                return "Appointment successfully created.";
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return $"Error creating appointment: {ex.Message}";
+            }
+        }
+
     }
+
+
+    
 }

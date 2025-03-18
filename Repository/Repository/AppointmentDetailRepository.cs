@@ -13,6 +13,11 @@ namespace Repository.Repository
 {
     public class AppointmentDetailRepository : IAppointmentDetailRepository
     {
+        private readonly PRNFinalProjectDBContext _context;
+        public AppointmentDetailRepository(PRNFinalProjectDBContext context)
+        {
+            _context = context;
+        }
         public async Task AddAppointmentDetailAsync(AppointmentDetailDTO appointmentDetailDto)
         {
             try
@@ -97,6 +102,23 @@ namespace Repository.Repository
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public async Task CreateAppointmentDetailAsync(AppointmentDetailDTO detail)
+        {
+            var entity = new AppointmentDetail // Your entity class
+            {
+                AppointmentId = detail.AppointmentId,
+                DoctorId = detail.DoctorId,
+                Status = detail.Status,
+                Diagnosis = detail.Diagnosis,
+                Treatment = detail.Treatment
+                // Map other fields as needed
+            };
+            _context.AppointmentDetails.Add(entity);
+            await _context.SaveChangesAsync();
+
+            detail.Id = entity.Id; // Update DTO with new ID
         }
     }
 }

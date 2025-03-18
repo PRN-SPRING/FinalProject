@@ -19,5 +19,6 @@ namespace Repository.Interface
         Task<bool> UsernameExistsAsync(string username);
         Task<IEnumerable<User>> GetUsersByRoleAsync(string? role);
         Task<IEnumerable<UserInfoDTO>> GetAllUsers();
+        Task<List<UserInfoDTO>> GetAllUsersAsync();
     }
 }

@@ -13,5 +13,7 @@ namespace Repository.Interface
         Task AddChildAsync(Child child);
         Task<List<Child>> GetChildrenByCustomerIdAsync(int customerId);
         Task<IEnumerable<ChildDTO>> GetAllChildrenAsync();
+
+        Task<List<ChildDTO>> GetChildrenByUserIdAsync(int customerId);
     }
 }

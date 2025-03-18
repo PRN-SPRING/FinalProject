@@ -12,6 +12,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Data;
+using Data.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Data.DTOs;
 
 namespace Repository.Repository
 {
@@ -192,6 +197,29 @@ namespace Repository.Repository
                 Position = user.Position,
                 YearsOfExperience = user.YearsOfExperience
             });
+        }
+
+        public async Task<List<UserInfoDTO>> GetAllUsersAsync()
+        {
+            return await _context.Users
+                .Select(u => new UserInfoDTO
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Password = u.Password, // Note: Consider security implications of returning passwords
+                    FullName = u.FullName,
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    Role = u.Role,
+                    Address = u.Address,
+                    Gender = u.Gender,
+                    Birthdate = u.Birthdate,
+                    Specialty = u.Specialty,
+                    LicenseNumber = u.LicenseNumber,
+                    Position = u.Position,
+                    YearsOfExperience = u.YearsOfExperience
+                })
+                .ToListAsync();
         }
     }
 }
