@@ -56,7 +56,11 @@
                             <td>@appointment.AppointmentDate.ToString("MM/dd/yyyy")</td>
                             <td>@appointment.Status</td>
                             <td>
-                                @(appointment.Notes.Length > 100 ? appointment.Notes.Substring(0, 100) + "..." : appointment.Notes)
+                                @(string.IsNullOrEmpty(appointment.Notes)
+                                    ? "No notes"
+                                    : (appointment.Notes.Length > 100
+                                    ? appointment.Notes.Substring(0, 100) + "..."
+                                    : appointment.Notes))
                             </td>
                             <td>
                                 @if (appointment.Status == "Created" || appointment.Status == "Created_Urgent")

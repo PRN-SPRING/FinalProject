@@ -18,6 +18,8 @@ namespace Repository.Interface
         Task DeleteAppointmentAsync(int id);
         Task<bool> AppoinmentExistsAsync(int id);
 
+        Task<List<AppointmentDTO>> GetAppointmentsNotificationAsync(int userId, DateTime startDate, DateTime endDate, string status);
+
         Task<List<AppointmentDTO>> GetAppointmentsByDoctorIdAsync(int id);
         Task<string> CreateAppointmentForDoctorAsync(CreateAppointmentDTO appointmentDto, AppointmentDetailDTO appointmentDetailDto, int doctorId);
 

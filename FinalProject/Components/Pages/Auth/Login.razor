@@ -83,19 +83,20 @@
             {
                 errorMessage = "Authentication failed: HttpContext is unavailable.";
             }
-
-            if (user.Role == "Staff")
-            {
-                await Task.Delay(1000);
+            if(user.Role == "Staff"){
                 navigation.NavigateTo("/staff/home");
             }
-
-            await Task.Delay(1000);
-            navigation.NavigateTo("/");
-        }
-        else
-        {
-            errorMessage = "Invalid username or password. Please try again.";
-        }
+            else if(user.Role == "Doctor"){
+                navigation.NavigateTo("doctor/home");
+            }
+            else if(user.Role == "Admin"){
+                navigation.NavigateTo("admin/home");
+            }
+             navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Invalid username or password. Please try again.";
+            }
     }
 }
