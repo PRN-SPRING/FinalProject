@@ -1,8 +1,17 @@
 ﻿@page "/"
 @layout FinalProject.Components.Layout.LandingLayout.Landing1
+@using Data.DTOs
+@using Repository.Interface
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IAppointmentRepository AppointmentRepository
+@rendermode InteractiveServer
 
 <!-- Import Bootstrap -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+
+<!-- Import Toast CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
 <div class="container-fluid p-0">
     <!-- Carousel -->
@@ -131,7 +140,108 @@
             </div>
         </div>
     </section>
+
+    <!-- Notifications Area -->
+    @if (upcomingAppointments.Count > 0 && showNotification)
+    {
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
+            <div class="toast show bg-info text-white" role="alert" aria-live="assertive" aria-atomic="true" >
+                <div class="toast-header bg-info text-white">
+                    <strong class="me-auto">Upcoming Appointments</strong>
+                    <button type="button" class="btn-close btn-close-white" @onclick="DismissNotification" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <p>You have @upcomingAppointments.Count upcoming appointment(s) tomorrow:</p>
+                    <ul class="ps-3 mb-0">
+                        @foreach (var appointment in upcomingAppointments)
+                        {
+                            <li>
+                                @appointment.ChildName -
+                                @(appointment.VaccineName ?? appointment.VaccinePackageName) at
+                                @appointment.AppointmentDate.ToString("hh:mm tt")
+                            </li>
+                        }
+                    </ul>
+                    <div class="mt-2">
+                        <a href="/appointments" class="btn btn-sm btn-light">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
+
+
 
 <!-- Import Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Import Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+@code {
+    private List<AppointmentDTO> upcomingAppointments = new List<AppointmentDTO>();
+    private bool showNotification = true;
+    private System.Threading.Timer? notificationTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        // Only run if user is authenticated
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            int currentUserId = await GetCurrentUserId();
+            // Get appointments for tomorrow with "Assigned" status
+            DateTime today = DateTime.Now;
+            DateTime tomorrow = DateTime.Now.AddDays(1);
+            upcomingAppointments = await AppointmentRepository.GetAppointmentsNotificationAsync(
+                currentUserId,
+                today,
+                tomorrow,
+                "Assigned");
+            // Set a timer to check for notifications periodically (every 30 minutes)
+            notificationTimer = new System.Threading.Timer(
+                async _ => await CheckForNotifications(),
+                null,
+                TimeSpan.FromMinutes(30),
+                TimeSpan.FromMinutes(30));
+        }
+    }
+
+    private async Task<int> GetCurrentUserId()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        return int.Parse(userId);
+    }
+
+    private void DismissNotification()
+    {
+        showNotification = false;
+        StateHasChanged();
+    }
+
+    private async Task CheckForNotifications()
+    {
+        int currentUserId = await GetCurrentUserId();
+        DateTime today = DateTime.Now;
+        DateTime tomorrow = DateTime.Now.AddDays(1);
+
+        upcomingAppointments = await AppointmentRepository.GetAppointmentsNotificationAsync(
+            currentUserId,
+            today,
+            tomorrow,
+            "Assigned");
+
+        showNotification = upcomingAppointments.Count > 0;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        notificationTimer?.Dispose();
+    }
+}
