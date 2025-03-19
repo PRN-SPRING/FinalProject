@@ -25,6 +25,7 @@ else
                 <th>Full Name</th>
                 <th>Birthdate</th>
                 <th>Gender</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -34,6 +35,10 @@ else
                     <td>@child.FullName</td>
                     <td>@child.Birthdate.ToShortDateString()</td>
                     <td>@child.Gender</td>
+                    <td>
+                        <button class="btn btn-primary me-2" @onclick="@(() => OpenEditPopup(child))">Edit</button>
+                        <button class="btn btn-danger" @onclick="@(() => OpenDeletePopup(child))">Delete</button>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -43,8 +48,51 @@ else
 
 <a href="/children/create" class="btn btn-secondary">Create Children Profile</a>
 
+<!-- Edit Popup -->
+@if (showEditPopup)
+{
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <h3>Edit Child</h3>
+            <label>Full Name:</label>
+            <input type="text" @bind="selectedChild.FullName" class="form-control" />
+            <label>Birthdate:</label>
+            <input type="date" @bind="selectedChild.Birthdate" class="form-control" />
+            <label>Gender:</label>
+            <select @bind="selectedChild.Gender" class="form-control">
+                <option>Male</option>
+                <option>Female</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" @onclick="SaveChanges">Save</button>
+                <button class="btn btn-secondary" @onclick="CloseEditPopup">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Confirmation Popup -->
+@if (showDeletePopup)
+{
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <h3>Are you sure?</h3>
+            <p>Do you really want to delete <strong>@selectedChild.FullName</strong>?</p>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" @onclick="ConfirmDelete">Yes</button>
+                <button class="btn btn-secondary" @onclick="CloseDeletePopup">No</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+
 @code {
     private List<Child> Children { get; set; } = new();
+    private bool showEditPopup = false;
+    private bool showDeletePopup = false;
+    private Child selectedChild = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,6 +107,49 @@ else
         }
 
         Children = await ChildRepository.GetChildrenByCustomerIdAsync(int.Parse(userId));
+        StateHasChanged();
     }
     
+    private void OpenEditPopup(Child child)
+    {
+        selectedChild = new Child
+        {
+            Id = child.Id,
+            FullName = child.FullName,
+            Birthdate = child.Birthdate,
+            Gender = child.Gender
+        };
+        showEditPopup = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveChanges()
+    {
+        await ChildRepository.UpdateChildAsync(selectedChild);
+        showEditPopup = false;
+        await OnInitializedAsync();
+    }
+
+    private void CloseEditPopup()
+    {
+        showEditPopup = false;
+    }
+
+    private void OpenDeletePopup(Child child)
+    {
+        selectedChild = child;
+        showDeletePopup = true;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        await ChildRepository.DeleteChildAsync(selectedChild.Id);
+        showDeletePopup = false;
+        await OnInitializedAsync();
+    }
+
+    private void CloseDeletePopup()
+    {
+        showDeletePopup = false;
+    }
 }

@@ -15,5 +15,8 @@ namespace Repository.Interface
         Task<IEnumerable<ChildDTO>> GetAllChildrenAsync();
 
         Task<List<ChildDTO>> GetChildrenByUserIdAsync(int customerId);
-    }
+
+        Task<bool> DeleteChildAsync(int child);
+        Task<bool> UpdateChildAsync(Child child);
+	}
 }

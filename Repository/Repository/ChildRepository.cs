@@ -21,7 +21,19 @@ namespace Repository.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<ChildDTO>> GetAllChildrenAsync()
+		public async Task<bool> DeleteChildAsync(int child)
+		{
+            var existingChild = _context.Children.Find(child);
+			if (existingChild == null)
+			{
+				return false;
+			}
+            _context.Children.Remove(existingChild);
+			await _context.SaveChangesAsync();
+			return true;
+		}
+
+		public async Task<IEnumerable<ChildDTO>> GetAllChildrenAsync()
         {
             var children = await _context.Children.Include(f => f.Customer).ToListAsync();
 
@@ -58,5 +70,22 @@ namespace Repository.Repository
                 })
                 .ToListAsync();
         }
-    }
+
+		public async Task<bool> UpdateChildAsync(Child child)
+		{
+			var existingChild = _context.Children.Find(child.Id);
+            if (existingChild == null)
+            {
+                return false;
+            }
+
+            existingChild.FullName = child.FullName;
+			existingChild.Birthdate = child.Birthdate;
+			existingChild.Gender = child.Gender;
+
+            _context.Children.Update(existingChild);
+			await _context.SaveChangesAsync();
+            return true;
+		}
+	}
 }
