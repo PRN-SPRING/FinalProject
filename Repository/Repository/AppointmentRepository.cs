@@ -164,5 +164,40 @@ namespace Repository.Repository
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<AppointmentDTO>> GetAppointmentsNotificationAsync(int userId,DateTime startDate, DateTime endDate, string status)
+        {
+            try
+            {
+                var appointments = await _context.Appointments
+                    .Where(a => a.CustomerId == userId && a.AppointmentDate.Date >= startDate.Date &&
+                                 a.AppointmentDate.Date <= endDate.Date &&
+                                 a.Status == status)
+                    .Select(a => new AppointmentDTO
+                    {
+
+                        Id = a.Id,
+                        CustomerId = a.CustomerId,
+                        ChildId = a.ChildId,
+                        VaccineId = a.VaccineId,
+                        VaccinePackageId = a.VaccinePackageId,
+                        AppointmentDate = a.AppointmentDate,
+                        Status = a.Status,
+                        Notes = a.Notes,
+                        CustomerName = a.Customer.FullName,
+                        ChildName = a.Child.FullName,
+                        VaccineName = a.Vaccine.Name,
+                        VaccinePackageName = a.VaccinePackage.Name
+                    })
+                    .ToListAsync();
+
+                return appointments;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
