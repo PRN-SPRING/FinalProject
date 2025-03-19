@@ -142,5 +142,17 @@ namespace Repository.Repository
             };
         }
 
+        public async Task<List<VaccinePackageDTO>> GetListVaccinePackagesAsync()
+        {
+            return await _context.VaccinePackages
+                .Select(p => new VaccinePackageDTO
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price
+                })
+                .ToListAsync();
+        }
     }
 }

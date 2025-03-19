@@ -1,4 +1,5 @@
 ﻿@page "/staff/vaccinepackages/edit"
+@attribute [Authorize(Roles = "Staff")]
 @using Microsoft.EntityFrameworkCore
 @using Data.DTOs
 @using Repository.Interface

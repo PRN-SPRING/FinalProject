@@ -1,5 +1,10 @@
 ﻿using Data;
+using Data;
+using Data.DTOs;
 using Data.Entities;
+using Data.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interface;
 using System;
@@ -11,6 +16,7 @@ using Data;
 using Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Data.DTOs;
 
 namespace Repository.Repository
 {
@@ -32,9 +38,30 @@ namespace Repository.Repository
                     .FirstOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
         }
 
-        public async Task<User> GetByIdAsync(int id)
+        public async Task<UserInfoDTO> GetByIdAsync(int id)
         {
-            return await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return null;
+            }
+
+            return new UserInfoDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                Address = user.Address,
+                Gender = user.Gender,
+                Birthdate = user.Birthdate,
+                Specialty = user.Specialty,
+                LicenseNumber = user.LicenseNumber,
+                Position = user.Position,
+                YearsOfExperience = user.YearsOfExperience
+            };
         }
 
         public async Task<bool> AuthenticateAsync(string username, string password)
@@ -150,5 +177,49 @@ namespace Repository.Repository
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<UserInfoDTO>> GetAllUsers()
+        {
+            var users = await _context.Users.ToListAsync();
+
+            return users.Select(user => new UserInfoDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                Address = user.Address,
+                Gender = user.Gender,
+                Birthdate = user.Birthdate,
+                Specialty = user.Specialty,
+                LicenseNumber = user.LicenseNumber,
+                Position = user.Position,
+                YearsOfExperience = user.YearsOfExperience
+            });
+        }
+
+        public async Task<List<UserInfoDTO>> GetAllUsersAsync()
+        {
+            return await _context.Users
+                .Select(u => new UserInfoDTO
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Password = u.Password, // Note: Consider security implications of returning passwords
+                    FullName = u.FullName,
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    Role = u.Role,
+                    Address = u.Address,
+                    Gender = u.Gender,
+                    Birthdate = u.Birthdate,
+                    Specialty = u.Specialty,
+                    LicenseNumber = u.LicenseNumber,
+                    Position = u.Position,
+                    YearsOfExperience = u.YearsOfExperience
+                })
+                .ToListAsync();
+        }
     }
 }

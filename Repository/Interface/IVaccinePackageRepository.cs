@@ -12,5 +12,6 @@ namespace Repository.Interface
         Task<VaccinePackageDTO> CreateVaccinePackageAsync(VaccinePackageDTO packageDto);
         Task<bool> UpdateVaccinePackageAsync(int id, VaccinePackageDTO packageDto);
         Task<bool> DeleteVaccinePackageAsync(int id);
+        Task<List<VaccinePackageDTO>> GetListVaccinePackagesAsync();
     }
 }

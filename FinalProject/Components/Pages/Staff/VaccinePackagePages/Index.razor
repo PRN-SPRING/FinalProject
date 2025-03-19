@@ -1,4 +1,5 @@
 ﻿@page "/staff/manage-vaccinepackages"
+@attribute [Authorize(Roles = "Staff")]
 @using Data.DTOs
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
@@ -10,71 +11,77 @@
 
 <PageTitle>Vaccine Packages Management</PageTitle>
 
-<div class="container mt-4">
-    <div class="card shadow-lg p-4">
-        <h2 class="text-primary text-center fw-bold">Vaccine Packages Management</h2>
-        <hr />
+<div>
+    <h2 class="mb-4">Vaccine Packages Management</h2>
 
-        <div class="d-flex justify-content-between mb-3">
-            <a href="staff/vaccinepackages/create" class="btn btn-success">
-                <i class="fas fa-plus"></i> Create New
-            </a>
-
-            <input type="text" class="form-control w-50" placeholder="Search by name or description..." @bind="searchTerm" @oninput="FilterPackages" />
+    <div class="d-flex justify-content-between mb-3">
+        <div class="d-flex w-50 input-group">
+            <input type="text" class="form-control" placeholder="Search by name or description..." @bind="searchTerm" />
+            <button class="btn btn-outline-secondary" @onclick="PerformSearch"><i class="fas fa-search"></i></button>
         </div>
 
-        @if (vaccinePackages == null)
-        {
-            <div class="alert alert-info text-center">Loading...</div>
-        }
-        else if (!filteredPackages.Any())
-        {
-            <div class="alert alert-warning text-center">No vaccine packages found.</div>
-        }
-        else
-        {
-            <div class="table-responsive table-container">
-                <table class="table table-striped table-hover table-bordered">
-                    <thead class="table-header">
-                        <tr>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Price</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var package in filteredPackages)
-                        {
-                            <tr>
-                                <td>@package.Name</td>
-                                <td>@package.Description</td>
-                                <td>@package.Price.ToString("C")</td>
-                                <td class="text-center">
-                                    <a href="@($"staff/vaccinepackages/edit?id={package.Id}")" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <a href="@($"staff/vaccinepackages/details?id={package.Id}")" class="btn btn-info btn-sm">
-                                        <i class="fas fa-eye"></i> Details
-                                    </a>
-                                    <a href="@($"staff/vaccinepackages/delete?id={package.Id}")" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
+        <a href="staff/vaccinepackages/create" class="btn btn-success">
+            <i class="fas fa-plus"></i> Create New
+        </a>
     </div>
 </div>
 
+
+@if (vaccinePackages == null)
+{
+    <div class="alert alert-info text-center">Loading...</div>
+}
+else if (!filteredPackages.Any())
+{
+    <div class="alert alert-warning text-center">No vaccine packages found.</div>
+}
+else
+{
+    <div class="table-responsive table-container">
+        <table class="table table-striped table-hover">
+            <thead class="table-header">
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var package in filteredPackages)
+                {
+                    <tr>
+                        <td>@package.Name</td>
+                        <td>@(package.Description.Length > 50 ? package.Description.Substring(0, 50) + "..." : package.Description)</td>
+                        <td>@package.Price.ToString("C")</td>
+                        <td class="text-center">
+                            <a href="@($"staff/vaccinepackages/edit?id={package.Id}")" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="@($"staff/vaccinepackages/details?id={package.Id}")" class="btn btn-info btn-sm">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                            <a href="@($"staff/vaccinepackages/delete?id={package.Id}")" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
 <style>
     .table-container {
-        max-height: 400px; /* Giới hạn chiều cao bảng */
+        max-height: 500px; /* Giới hạn chiều cao bảng */
         overflow-y: auto; /* Kích hoạt thanh cuộn dọc khi cần */
         border: 1px solid #ddd; /* Viền cho đẹp */
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
     }
 
     .table-header {
@@ -96,16 +103,22 @@
         filteredPackages = vaccinePackages;
     }
 
-    private void FilterPackages(ChangeEventArgs e)
+    private async Task LoadVaccinePackages()
     {
-        searchTerm = e.Value?.ToString() ?? "";
+        vaccinePackages = (await VaccinePackageRepository.GetAllVaccinePackagesDtoAsync()).ToList();
+        filteredPackages = vaccinePackages;
+    }
+
+    private async Task PerformSearch()
+    {
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
-            filteredPackages = vaccinePackages!;
+            await LoadVaccinePackages(); // Load all packages if search term is empty
         }
         else
         {
             var keyword = searchTerm.ToLower();
+            vaccinePackages = (await VaccinePackageRepository.GetAllVaccinePackagesDtoAsync()).ToList();
             filteredPackages = vaccinePackages!
                 .Where(p => p.Name.ToLower().Contains(keyword) || p.Description.ToLower().Contains(keyword))
                 .ToList();

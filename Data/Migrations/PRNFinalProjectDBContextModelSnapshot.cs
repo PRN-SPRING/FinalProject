@@ -252,6 +252,9 @@ namespace Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
+
                     b.Property<int>("ChildId")
                         .HasColumnType("int");
 
@@ -269,6 +272,8 @@ namespace Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
 
                     b.HasIndex("ChildId");
 
@@ -288,9 +293,11 @@ namespace Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<int?>("MaxAgeToUse")
+                    b.Property<int>("MaxAgeToUse")
                         .HasColumnType("int");
 
                     b.Property<int>("MinAgeToUse")
@@ -298,7 +305,8 @@ namespace Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -451,6 +459,10 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Data.Entities.VaccinationSchedule", b =>
                 {
+                    b.HasOne("Data.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId");
+
                     b.HasOne("Data.Entities.Child", "Child")
                         .WithMany("VaccinationSchedules")
                         .HasForeignKey("ChildId")
@@ -464,6 +476,8 @@ namespace Data.Migrations
                     b.HasOne("Data.Entities.VaccinePackage", "VaccinePackage")
                         .WithMany("VaccinationSchedules")
                         .HasForeignKey("VaccinePackageId");
+
+                    b.Navigation("Appointment");
 
                     b.Navigation("Child");
 

@@ -36,6 +36,8 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddAntiforgery();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IVaccineRepository, VaccineRepository>();
+builder.Services.AddScoped<IVaccinePackageRepository, VaccinePackageRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -61,7 +61,7 @@
     [SupplyParameterFromForm]
     public UserDTO Model { get; set; } = new();
 
-    private async Task Authenticate() 
+    private async Task Authenticate()
     {
         var isAuthenticated = await userRepository.AuthenticateAsync(Model.Username, Model.Password);
         if (isAuthenticated)

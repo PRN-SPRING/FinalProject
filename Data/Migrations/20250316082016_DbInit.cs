@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Data.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class DbInit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,10 +57,10 @@ namespace Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     MinAgeToUse = table.Column<int>(type: "int", nullable: false),
-                    MaxAgeToUse = table.Column<int>(type: "int", nullable: true),
+                    MaxAgeToUse = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
@@ -157,39 +157,6 @@ namespace Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "VaccinationSchedules",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ChildId = table.Column<int>(type: "int", nullable: false),
-                    VaccineId = table.Column<int>(type: "int", nullable: true),
-                    VaccinePackageId = table.Column<int>(type: "int", nullable: true),
-                    ScheduledDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VaccinationSchedules", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_VaccinationSchedules_Children_ChildId",
-                        column: x => x.ChildId,
-                        principalTable: "Children",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_VaccinationSchedules_VaccinePackages_VaccinePackageId",
-                        column: x => x.VaccinePackageId,
-                        principalTable: "VaccinePackages",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_VaccinationSchedules_Vaccines_VaccineId",
-                        column: x => x.VaccineId,
-                        principalTable: "Vaccines",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AppointmentDetails",
                 columns: table => new
                 {
@@ -269,6 +236,45 @@ namespace Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "VaccinationSchedules",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ChildId = table.Column<int>(type: "int", nullable: false),
+                    VaccineId = table.Column<int>(type: "int", nullable: true),
+                    VaccinePackageId = table.Column<int>(type: "int", nullable: true),
+                    ScheduledDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AppointmentId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VaccinationSchedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VaccinationSchedules_Appointments_AppointmentId",
+                        column: x => x.AppointmentId,
+                        principalTable: "Appointments",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_VaccinationSchedules_Children_ChildId",
+                        column: x => x.ChildId,
+                        principalTable: "Children",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VaccinationSchedules_VaccinePackages_VaccinePackageId",
+                        column: x => x.VaccinePackageId,
+                        principalTable: "VaccinePackages",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_VaccinationSchedules_Vaccines_VaccineId",
+                        column: x => x.VaccineId,
+                        principalTable: "Vaccines",
+                        principalColumn: "Id");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AppointmentDetails_AppointmentId",
                 table: "AppointmentDetails",
@@ -317,6 +323,11 @@ namespace Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_AppointmentId",
                 table: "Payments",
+                column: "AppointmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VaccinationSchedules_AppointmentId",
+                table: "VaccinationSchedules",
                 column: "AppointmentId");
 
             migrationBuilder.CreateIndex(

@@ -7,6 +7,7 @@
 @inject NavigationManager NavigationManager
 @inject NavigationManager Navigation
 @layout FinalProject.Components.Layout.LandingLayout.Landing1
+@rendermode InteractiveServer
 <PageTitle>My Appointments</PageTitle>
 
 <h3>My Appointments</h3>
@@ -30,6 +31,7 @@ else
                 <th>Vaccine Package</th>
                 <th>Status</th>
                 <th>Notes</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -42,24 +44,110 @@ else
                     <td>@appointment.VaccinePackageName</td>
                     <td>@appointment.Status</td>
                     <td>@appointment.Notes</td>
+                    <td>
+                        @if (appointment.AppointmentDate.AddDays(3) <= DateTime.Now && string.IsNullOrEmpty(appointment.Notes))
+                        {
+                            <button class="btn btn-warning" @onclick="() => ShowNoteForm(appointment)">Take Side Effect Note</button>
+                        }
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
 }
+<!-- Modal -->
+@if (isModalOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);" id="noteModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Take Side Effect Note</h5>
+                    <button type="button" class="close" @onclick="CancelNoteForm" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <textarea @bind="sideEffectNote" rows="3" class="form-control"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" @onclick="ConfirmSideEffectNote">Confirm</button>
+                    <button class="btn btn-secondary" @onclick="CancelNoteForm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 <a class="btn btn-primary" href="/create-appointment">Create an appointment</a>
 @code {
     private List<AppointmentDTO> appointments = new List<AppointmentDTO>();
+    private AppointmentDTO? selectedAppointment;
+
+    // [SupplyParameterFromForm]
+    private string sideEffectNote  = "";
+    private bool isModalOpen = false;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
         if (!string.IsNullOrEmpty(userId))
         {
             appointments = await AppointmentRepository.GetAppointmentsByUserIdAsync(int.Parse(userId));
         }
+    }
+    private void ShowNoteForm(AppointmentDTO appointment)
+    {
+        selectedAppointment = appointment;
+        sideEffectNote = "";
+        isModalOpen = true;
+        // StateHasChanged(); // Ensure UI updates
+    }
+
+    private void CancelNoteForm()
+    {
+        selectedAppointment = null;
+        sideEffectNote = "";
+        isModalOpen = false;
+        // StateHasChanged(); // Ensure UI updates
+    }
+
+    private async Task ConfirmSideEffectNote()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        
+        if (selectedAppointment == null || string.IsNullOrWhiteSpace(sideEffectNote))
+            return;
+
+        // Update the original appointment with the note
+        selectedAppointment.Notes = sideEffectNote;
+        //await AppointmentRepository.UpdateAppointmentAsync(selectedAppointment);
+
+        // Create a new urgent appointment 3 days after taking the note
+        var newAppointment = new CreateAppointmentDTO
+            {
+                CustomerId = int.Parse(userId),
+                ChildId = selectedAppointment.ChildId,
+                AppointmentDate = DateTime.Now.AddDays(3),
+                VaccineId = selectedAppointment.VaccineId,
+                VaccinePackageId = selectedAppointment.VaccinePackageId,
+                Status = "Created_Urgent",
+                Notes = sideEffectNote
+            };
+
+        await AppointmentRepository.CreateAppointmentAsync(newAppointment);
+
+        // Refresh the appointments list
+        appointments = await AppointmentRepository.GetAppointmentsByUserIdAsync(int.Parse(userId));
+        selectedAppointment = null;
+        isModalOpen = false;
     }
 }
