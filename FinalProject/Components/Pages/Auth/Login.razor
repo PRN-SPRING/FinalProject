@@ -28,9 +28,7 @@
             <div class="mb-3 text-center">
                 <span class="text-danger">@errorMessage</span>
             </div>
-            <div class="mb-3 d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Login</button>
-            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
         </EditForm>
     </div>
 </div>
@@ -87,7 +85,7 @@
                 navigation.NavigateTo("/staff/home");
             }
             else if(user.Role == "Doctor"){
-                navigation.NavigateTo("doctor/home");
+                navigation.NavigateTo("/doctor/appointments");
             }
             else if(user.Role == "Admin"){
                 navigation.NavigateTo("admin/home");
