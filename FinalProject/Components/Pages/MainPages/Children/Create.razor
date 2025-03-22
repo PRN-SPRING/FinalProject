@@ -7,38 +7,54 @@
 @inject IChildRepository ChildRepository
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h2>Create Child Profile</h2>
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-primary mb-4"><i class="bi bi-person-plus"></i> Create Child Profile</h2>
 
-<EditForm Model="Child" OnValidSubmit="HandleValidSubmit" FormName="CreateChildForm">
-    <DataAnnotationsValidator />
+        <EditForm Model="Child" OnValidSubmit="HandleValidSubmit" FormName="CreateChildForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="alert alert-danger" />
 
-    <div class="form-group">
-        <label>Full Name</label>
-        <InputText @bind-Value="Child.FullName" class="form-control" />
+            <div class="mb-3">
+                <label class="form-label"><i class="bi bi-person"></i> Full Name</label>
+                <InputText @bind-Value="Child.FullName" class="form-control" placeholder="Enter child's full name" />
+                <ValidationMessage For="@(() => Child.FullName)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="bi bi-calendar"></i> Birthdate</label>
+                <InputDate @bind-Value="Child.Birthdate" class="form-control" min="@MinDate.ToString("yyyy-MM-dd")"
+                           max="@MaxDate.ToString("yyyy-MM-dd")" />
+                <ValidationMessage For="@(() => Child.Birthdate)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="bi bi-gender-ambiguous"></i> Gender</label>
+                <InputSelect @bind-Value="Child.Gender" class="form-control">
+                    <option value="Male" selected>Male</option>
+                    <option value="Female">Female</option>
+                </InputSelect>
+                <ValidationMessage For="@(() => Child.Gender)" class="text-danger" />
+            </div>
+
+            <div class="d-flex justify-content-center mt-4">
+                <button type="submit" class="btn btn-success me-2">
+                    <i class="bi bi-check-circle"></i> Create
+                </button>
+                <a href="/children" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </EditForm>
     </div>
-
-    <div class="form-group">
-        <label>Birthdate</label>
-        <InputDate @bind-Value="Child.Birthdate" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Gender</label>
-        <InputSelect @bind-Value="Child.Gender" class="form-control">
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-        </InputSelect>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Create</button>
-</EditForm>
-
-<a href="/children" class="btn btn-secondary">Back to List</a>
+</div>
 
 @code {
     [SupplyParameterFromForm]
     private Child Child { get; set; } = new();
     private string? UserId;
+    private DateTime MinDate = new DateTime(2000, 1, 1);
+    private DateTime MaxDate = DateTime.Today;
 
     protected override async Task OnInitializedAsync()
     {

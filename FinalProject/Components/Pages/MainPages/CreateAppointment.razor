@@ -13,90 +13,89 @@
 @rendermode InteractiveServer
 <PageTitle>Create Appointment</PageTitle>
 
-<h3>Create Appointment</h3>
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <h3 class="text-center mb-4">Create Appointment</h3>
 
-<EditForm Model="@appointment" OnValidSubmit="HandleValidSubmit" FormName="CreateAppointment">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+        <EditForm Model="@appointment" OnValidSubmit="HandleValidSubmit" FormName="CreateAppointment">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-    <!-- Select Child -->
-    <div class="form-group">
-        <label for="child">Select Child</label>
-        <InputSelect @bind-Value="appointment.ChildId" class="form-control">
-            <option value="">-- Select Child --</option>
-            @foreach (var child in children)
+            <div class="form-group">
+                <label for="child">Select Child</label>
+                <InputSelect @bind-Value="appointment.ChildId" class="form-control">
+                    <option value="">-- Select Child --</option>
+                    @foreach (var child in children)
+                    {
+                        <option value="@child.Id">@child.FullName</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="form-group text-center mt-3">
+                <button type="button" class="btn mx-2 @(isSelectingVaccine ? "btn-primary" : "btn-outline-primary")"
+                        @onclick="ToggleToVaccine">
+                    Select Vaccine
+                </button>
+
+                <button type="button" class="btn mx-2 @(isSelectingVaccinePackage ? "btn-secondary" : "btn-outline-secondary")"
+                        @onclick="ToggleToVaccinePackage">
+                    Select Vaccine Package
+                </button>
+            </div>
+
+            @if (isSelectingVaccine)
             {
-                <option value="@child.Id">@child.FullName</option>
+                <div class="form-group mt-3">
+                    <label for="vaccine">Select Vaccine</label>
+                    <InputSelect @bind-Value="selectedVaccineId" class="form-control">
+                        <option value="0">-- Select Vaccine --</option>
+                        @foreach (var vaccine in vaccines)
+                        {
+                            <option value="@vaccine.Id">@vaccine.Name - $@vaccine.Price</option>
+                        }
+                    </InputSelect>
+                </div>
             }
-        </InputSelect>
+
+            @if (isSelectingVaccinePackage)
+            {
+                <div class="form-group mt-3">
+                    <label for="vaccinePackage">Select Vaccine Package</label>
+                    <InputSelect @bind-Value="selectedVaccinePackageId" class="form-control">
+                        <option value="0">-- Select Vaccine Package --</option>
+                        @foreach (var package in vaccinePackages)
+                        {
+                            <option value="@package.Id">@package.Name - $@package.Price</option>
+                        }
+                    </InputSelect>
+                </div>
+            }
+
+            <div class="form-group mt-3">
+                <label for="appointmentDate">Appointment Date</label>
+                <InputDate @bind-Value="appointment.AppointmentDate" class="form-control" />
+            </div>
+
+            <div class="form-group mt-3">
+                <label for="notes">Notes</label>
+                <InputTextArea @bind-Value="appointment.Notes" class="form-control" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3">@errorMessage</div>
+            }
+
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-success" @onclick="ShowModal" disabled="@(CanSubmit() ? null : "disabled")">Create Appointment</button>
+            </div>
+        </EditForm>
     </div>
+</div>
 
-
-    <div class="form-group">
-        <button type="button" class="btn btn-secondary"
-        @onclick="ToggleToVaccine">
-            Select Vaccine
-        </button>
-        <button type="button" class="btn btn-secondary"
-        @onclick="ToggleToVaccinePackage">
-            Select Vaccine Package
-        </button>
-    </div>
-
-
-    @if (isSelectingVaccine)
-    {
-        <div class="form-group">
-            <label for="vaccine">Select Vaccine</label>
-            <InputSelect @bind-Value="selectedVaccineId" class="form-control">
-                <option value="0">-- Select Vaccine --</option>
-                @foreach (var vaccine in vaccines)
-                {
-                    <option value="@vaccine.Id">@vaccine.Name - @vaccine.Price</option>
-                }
-            </InputSelect>
-        </div>
-    }
-
-    @if (isSelectingVaccinePackage)
-    {
-        <div class="form-group">
-            <label for="vaccinePackage">Select Vaccine Package</label>
-            <InputSelect @bind-Value="selectedVaccinePackageId" class="form-control">
-                <option value="0">-- Select Vaccine Package --</option>
-                @foreach (var package in vaccinePackages)
-                {
-                    <option value="@package.Id">@package.Name - @package.Price</option>
-                }
-            </InputSelect>
-        </div>
-    }
-
-    <!-- Appointment Date -->
-    <div class="form-group">
-        <label for="appointmentDate">Appointment Date</label>
-        <InputDate @bind-Value="appointment.AppointmentDate" class="form-control"/>
-    </div>
-
-    <!-- Notes -->
-    <div class="form-group">
-        <label for="notes">Notes</label>
-        <InputTextArea @bind-Value="appointment.Notes" class="form-control" />
-    </div>
-
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="text-danger">
-            @errorMessage
-        </div>
-    }
-
-    <!-- Submit Button -->
-    @* <button type="submit" class="btn btn-primary">Create Appointment</button> *@
-    <button type="button" class="btn btn-primary" @onclick="ShowModal" disabled="@(CanSubmit() ? null : "disabled")">Create Appointment</button>
-</EditForm>
-
-<div class="modal @(showModal ? "show d-block" : "d-none")" tabindex="-1" role="dialog">
+<!-- Payment Confirmation Modal -->
+<div class="modal fade @(showModal ? "show d-block" : "d-none")" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -105,22 +104,20 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <div class="img-placeholder border rounded p-3 mb-2" style="display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                    <img src="@PaymentUrl" alt="Transaction Receipt" style="width: 80%; max-height: 100%;" />
+            <div class="modal-body text-center">
+                <div class="img-placeholder border rounded p-3 mb-2 bg-light d-flex align-items-center justify-content-center">
+                    <img src="@PaymentUrl" alt="Transaction Receipt" class="img-fluid" style="max-width: 80%; max-height: 100%;" />
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer d-flex justify-content-between">
                 <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                <button type="button" class="btn btn-success" @onclick="HandleValidSubmit">
-                    I have done the transaction
-                </button>
+                <button type="button" class="btn btn-success" @onclick="HandleValidSubmit">I have done the transaction</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="@(showModal ? "modal-backdrop show" : "d-none")"></div>
+<div class="modal-backdrop fade @(showModal ? "show" : "d-none")"></div>
 
 @code {
 
@@ -171,8 +168,8 @@
     {
         return appointment.ChildId > 0 // Ensure a child is selected
             && (selectedVaccineId.HasValue || selectedVaccinePackageId.HasValue) // Ensure either a vaccine or vaccine package is selected
-            && (!isSelectingVaccine || selectedVaccineId.Value > 0) // Ensure a vaccine is selected if choosing vaccine
-            && (!isSelectingVaccinePackage || selectedVaccinePackageId.Value > 0); // Ensure a vaccine package is selected if choosing package
+            && (!isSelectingVaccine || selectedVaccineId.GetValueOrDefault() > 0) // Ensure a vaccine is selected if choosing vaccine
+            && (!isSelectingVaccinePackage || selectedVaccinePackageId.GetValueOrDefault() > 0); // Ensure a vaccine package is selected if choosing package
     }
 
     // Toggle methods that also clear the opposing selection
@@ -196,6 +193,11 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
         isSelectingVaccine = true;
         isSelectingVaccinePackage = false;
         // Fetch the list of children, vaccines, and vaccine packages

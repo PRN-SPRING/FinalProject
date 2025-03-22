@@ -10,20 +10,27 @@
 @rendermode InteractiveServer
 <PageTitle>My Appointments</PageTitle>
 
-<h3>My Appointments</h3>
+<h3 class="text-primary">📅 My Appointments</h3>
 
 @if (appointments == null)
 {
-    <p>Loading appointments...</p>
+    <div class="d-flex justify-content-center mt-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
 }
 else if (!appointments.Any())
 {
-    <p>You have no appointments.</p>
+    <div class="alert alert-info text-center mt-4">
+        <strong>No appointments found.</strong><br />
+        
+    </div>
 }
 else
 {
-    <table class="table">
-        <thead>
+    <table class="table table-hover table-striped mt-4">
+        <thead class="table-dark">
             <tr>
                 <th>Child Name</th>
                 <th>Appointment Date</th>
@@ -42,12 +49,18 @@ else
                     <td>@appointment.AppointmentDate.ToShortDateString()</td>
                     <td>@appointment.VaccineName</td>
                     <td>@appointment.VaccinePackageName</td>
-                    <td>@appointment.Status</td>
+                    <td>
+                        <span class="badge @(appointment.Status == "Created_Urgent" ? "bg-danger" : "bg-success")">
+                            @appointment.Status
+                        </span>
+                    </td>
                     <td>@appointment.Notes</td>
                     <td>
-                        @if (appointment.AppointmentDate.AddDays(3) <= DateTime.Now && string.IsNullOrEmpty(appointment.Notes))
+                        @if (appointment.AppointmentDate.AddDays(3) <= DateTime.Now )
                         {
-                            <button class="btn btn-warning" @onclick="() => ShowNoteForm(appointment)">Take Side Effect Note</button>
+                            <button class="btn btn-warning btn-sm" @onclick="() => ShowNoteForm(appointment)">
+                                📝 Take Note
+                            </button>
                         }
                     </td>
                 </tr>
@@ -55,30 +68,30 @@ else
         </tbody>
     </table>
 }
+
 <!-- Modal -->
 @if (isModalOpen)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);" id="noteModal">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">Take Side Effect Note</h5>
-                    <button type="button" class="close" @onclick="CancelNoteForm" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" @onclick="CancelNoteForm"></button>
                 </div>
                 <div class="modal-body">
-                    <textarea @bind="sideEffectNote" rows="3" class="form-control"></textarea>
+                    <textarea @bind="sideEffectNote" rows="3" class="form-control" placeholder="Enter side effects..."></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-success" @onclick="ConfirmSideEffectNote">Confirm</button>
-                    <button class="btn btn-secondary" @onclick="CancelNoteForm">Cancel</button>
+                    <button class="btn btn-success" @onclick="ConfirmSideEffectNote">✅ Confirm</button>
+                    <button class="btn btn-secondary" @onclick="CancelNoteForm">❌ Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 }
-<a class="btn btn-primary" href="/create-appointment">Create an appointment</a>
+
+<a class="btn btn-primary mt-3" href="/create-appointment">➕ Create an appointment</a>
 @code {
     private List<AppointmentDTO> appointments = new List<AppointmentDTO>();
     private AppointmentDTO? selectedAppointment;
