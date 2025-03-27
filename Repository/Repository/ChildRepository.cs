@@ -21,31 +21,41 @@ namespace Repository.Repository
             await _context.SaveChangesAsync();
         }
 
-		public async Task<bool> DeleteChildAsync(int child)
-		{
-            var existingChild = _context.Children.Find(child);
-			if (existingChild == null)
-			{
-				return false;
-			}
-            _context.Children.Remove(existingChild);
-			await _context.SaveChangesAsync();
-			return true;
-		}
-
-		public async Task<IEnumerable<ChildDTO>> GetAllChildrenAsync()
+        public async Task<bool> DeleteChildAsync(int child)
         {
-            var children = await _context.Children.Include(f => f.Customer).ToListAsync();
-
-            return children.Select(child => new ChildDTO
+            var existingChild = _context.Children.Find(child);
+            if (existingChild == null)
             {
-                Id = child.Id,
-                CustomerId = child.CustomerId,
-                CustomerName = child.Customer?.FullName,
-                FullName = child.FullName,
-                Birthdate = child.Birthdate,
-                Gender = child.Gender
-            });
+                return false;
+            }
+            _context.Children.Remove(existingChild);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<IEnumerable<ChildDTO>> GetAllChildrenAsync()
+        {
+            try
+            {
+                using (var _context = new PRNFinalProjectDBContext())
+                {
+                    var children = await _context.Children.Include(f => f.Customer).ToListAsync();
+
+                    return children.Select(child => new ChildDTO
+                    {
+                        Id = child.Id,
+                        CustomerId = child.CustomerId,
+                        CustomerName = child.Customer?.FullName,
+                        FullName = child.FullName,
+                        Birthdate = child.Birthdate,
+                        Gender = child.Gender
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error getting all children", ex);
+            }
         }
 
         public async Task<List<Child>> GetChildrenByCustomerIdAsync(int customerId)
@@ -71,21 +81,21 @@ namespace Repository.Repository
                 .ToListAsync();
         }
 
-		public async Task<bool> UpdateChildAsync(Child child)
-		{
-			var existingChild = _context.Children.Find(child.Id);
+        public async Task<bool> UpdateChildAsync(Child child)
+        {
+            var existingChild = _context.Children.Find(child.Id);
             if (existingChild == null)
             {
                 return false;
             }
 
             existingChild.FullName = child.FullName;
-			existingChild.Birthdate = child.Birthdate;
-			existingChild.Gender = child.Gender;
+            existingChild.Birthdate = child.Birthdate;
+            existingChild.Gender = child.Gender;
 
             _context.Children.Update(existingChild);
-			await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return true;
-		}
-	}
+        }
+    }
 }

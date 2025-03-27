@@ -57,19 +57,23 @@
                             <td>@appointment.Status</td>
                             <td>
                                 @(string.IsNullOrEmpty(appointment.Notes)
-                                    ? "No notes"
-                                    : (appointment.Notes.Length > 100
-                                    ? appointment.Notes.Substring(0, 100) + "..."
-                                    : appointment.Notes))
-                            </td>
-                            <td>
-                                @if (appointment.Status == "Created" || appointment.Status == "Created_Urgent")
+                                                        ? "No notes"
+                                                        : (appointment.Notes.Length > 100
+                                                        ? appointment.Notes.Substring(0, 100) + "..."
+                                                        : appointment.Notes))
+                        </td>
+                        <td>
+                        @if (appointment.Status == "Created" || appointment.Status == "Created_Urgent")
                                 {
-                                    <button class="btn btn-info" @onclick="() => ShowScheduleModal(appointment)">Schedule</button>
+                                    <button class="btn btn-info btn-sm" @onclick="() => ShowScheduleModal(appointment)" style="background-color: #5bc0de; border-color: #46b8da;">
+                                        <i class="fas fa-calendar-alt me-1"></i> Schedule
+                                    </button>
                                 }
                                 @if (appointment.Status == "Completed" || appointment.Status == "Cancelled" || appointment.Status == "Assigned")
                                 {
-                                    <button class="btn btn-primary" @onclick="() => ShowDetailsModal(appointment)">Details</button>
+                                    <button class="btn btn-primary btn-sm" @onclick="() => ShowDetailsModal(appointment)" style="background-color: #337ab7; border-color: #2e6da4;">
+                                        <i class="fas fa-info-circle me-1"></i> Details
+                                    </button>
                                 }
                             </td>
                         </tr>
@@ -180,23 +184,23 @@
                         </div>
 
                         <!-- Lịch tiêm chủng -->
-                        @if (selectedVaccinationSchedule != null)
-                        {
-                            <div class="border p-3 rounded shadow-sm mt-3">
-                                <h5 class="text-success mb-3">Vaccination Schedule</h5>
-                                <p><strong>Scheduled Date:</strong> @selectedVaccinationSchedule.ScheduledDate.ToString("f")</p>
-                                <p>
-                                    <strong>Status:</strong>
-                                    <span class="badge bg-warning">
-                                        @selectedVaccinationSchedule.Status
-                                    </span>
-                                </p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-warning mt-3">No vaccination schedule available.</div>
-                        }
+                        @* @if (selectedVaccinationSchedule != null) *@
+                        @* { *@
+                        @*     <div class="border p-3 rounded shadow-sm mt-3"> *@
+                        @*         <h5 class="text-success mb-3">Vaccination Schedule</h5> *@
+                        @*         <p><strong>Scheduled Date:</strong> @selectedVaccinationSchedule.ScheduledDate.ToString("f")</p> *@
+                        @*         <p> *@
+                        @*             <strong>Status:</strong> *@
+                        @*             <span class="badge bg-warning"> *@
+                        @*                 @selectedVaccinationSchedule.Status *@
+                        @*             </span> *@
+                        @*         </p> *@
+                        @*     </div> *@
+                        @* } *@
+                        @* else *@
+                        @* { *@
+                        @*     <div class="alert alert-warning mt-3">No vaccination schedule available.</div> *@
+                        @* } *@
 
                         <!-- Báo cáo của bác sĩ -->
                         @if (selectedAppointmentDetail != null)
@@ -334,6 +338,7 @@
         await AppointmentDetailRepository.AddAppointmentDetailAsync(appointmentDetail);
 
         selectedAppointment.Status = "Assigned";
+        selectedAppointment.AppointmentDate = vaccinationSchedule.ScheduledDate;
         await AppointmentRepository.UpdateAppointmentAsync(selectedAppointment);
 
         await Task.Delay(500);
@@ -376,7 +381,7 @@
 
         if (result == null || !((bool?)((System.Text.Json.JsonElement)result).GetProperty("isConfirmed").GetBoolean()) == true)
         {
-            return; 
+            return;
         }
 
         try

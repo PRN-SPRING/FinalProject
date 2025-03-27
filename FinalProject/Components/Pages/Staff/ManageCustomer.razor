@@ -58,7 +58,6 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone Number</th>
@@ -71,7 +70,6 @@
                         @foreach (var customer in SearchResults)
                         {
                             <tr>
-                                <td>@customer.Id</td>
                                 <td>@customer.FullName</td>
                                 <td>@customer.Email</td>
                                 <td>@customer.PhoneNumber</td>
@@ -101,7 +99,6 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Birthdate</th>
                         <th>Gender</th>
@@ -112,7 +109,6 @@
                     @foreach (var child in SearchChildrenl)
                     {
                         <tr>
-                            <td>@child.Id</td>
                             <td>@child.FullName</td>
                             <td>@child.Birthdate.ToShortDateString()</td>
                             <td>@child.Gender</td>
@@ -137,9 +133,7 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Customer</th>
-                        <th>Appointment</th>
                         <th>Rating</th>
                         <th>Comments</th>
                         <th>Action</th>
@@ -149,9 +143,7 @@
                     @foreach (var feedback in SearchFeedbacksl)
                     {
                         <tr>
-                            <td>@feedback.Id</td>
                             <td>@feedback.CustomerName</td>
-                            <td>@feedback.AppointmentId</td>
                             <td>@feedback.Rating ⭐</td>
                             <td>@(feedback.Comments.Length > 50 ? feedback.Comments.Substring(0, 50) + "..." : feedback.Comments)</td>
                             <td>

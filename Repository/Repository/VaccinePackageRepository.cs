@@ -4,122 +4,135 @@ using Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interface;
 
-
 namespace Repository.Repository
 {
     public class VaccinePackageRepository : IVaccinePackageRepository
     {
-        private readonly PRNFinalProjectDBContext _context;
+        private readonly IDbContextFactory<PRNFinalProjectDBContext> _contextFactory;
 
-        public VaccinePackageRepository(PRNFinalProjectDBContext context)
+        public VaccinePackageRepository(IDbContextFactory<PRNFinalProjectDBContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<IEnumerable<VaccinePackage>> GetAllVaccinePackagesAsync()
         {
-            return await _context.Set<VaccinePackage>().Include(vp => vp.PackageDetails)
-                .ThenInclude(pd => pd.Vaccine)
-                .ToListAsync();
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                return await context.Set<VaccinePackage>()
+                    .Include(vp => vp.PackageDetails)
+                    .ThenInclude(pd => pd.Vaccine)
+                    .ToListAsync();
+            }
         }
 
         public async Task<IEnumerable<VaccinePackageDTO>> GetAllVaccinePackagesDtoAsync()
         {
-            var packages = await _context.VaccinePackages
-                .Include(vp => vp.PackageDetails)
-                .ThenInclude(pd => pd.Vaccine)
-                .ToListAsync();
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                var packages = await context.VaccinePackages
+                    .Include(vp => vp.PackageDetails)
+                    .ThenInclude(pd => pd.Vaccine)
+                    .OrderByDescending(vp => vp.Id)
+                    .ToListAsync();
 
-            return packages.Select(MapToDTO);
+                return packages.Select(MapToDTO);
+            }
         }
 
         public async Task<VaccinePackageDTO?> GetVaccinePackageByIdAsync(int id)
         {
-            var vaccinePackage = await _context.VaccinePackages
-                .Include(vp => vp.PackageDetails)
-                .ThenInclude(pd => pd.Vaccine)
-                .FirstOrDefaultAsync(vp => vp.Id == id);
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                var vaccinePackage = await context.VaccinePackages
+                    .Include(vp => vp.PackageDetails)
+                    .ThenInclude(pd => pd.Vaccine)
+                    .FirstOrDefaultAsync(vp => vp.Id == id);
 
-            return vaccinePackage != null ? MapToDTO(vaccinePackage) : null;
+                return vaccinePackage != null ? MapToDTO(vaccinePackage) : null;
+            }
         }
 
         public async Task<VaccinePackageDTO> CreateVaccinePackageAsync(VaccinePackageDTO packageDto)
         {
-            var vaccinePackage = new VaccinePackage
+            using (var context = _contextFactory.CreateDbContext())
             {
-                Name = packageDto.Name,
-                Description = packageDto.Description,
-                Price = packageDto.Price,
-                PackageDetails = new List<VaccinePackageDetail>()
-            };
-
-            if (packageDto.PackageDetails != null && packageDto.PackageDetails.Any())
-            {
-                foreach (var pd in packageDto.PackageDetails)
+                var vaccinePackage = new VaccinePackage
                 {
-                    vaccinePackage.PackageDetails.Add(new VaccinePackageDetail
+                    Name = packageDto.Name,
+                    Description = packageDto.Description,
+                    Price = packageDto.Price,
+                    PackageDetails = new List<VaccinePackageDetail>()
+                };
+
+                if (packageDto.PackageDetails != null && packageDto.PackageDetails.Any())
+                {
+                    foreach (var pd in packageDto.PackageDetails)
                     {
-                        VaccineId = pd.VaccineId,
-                        Quantity = pd.Quantity
-                    });
+                        vaccinePackage.PackageDetails.Add(new VaccinePackageDetail
+                        {
+                            VaccineId = pd.VaccineId,
+                            Quantity = pd.Quantity
+                        });
+                    }
                 }
+
+                context.VaccinePackages.Add(vaccinePackage);
+                await context.SaveChangesAsync();
+
+                return MapToDTO(vaccinePackage);
             }
-
-            _context.VaccinePackages.Add(vaccinePackage);
-            await _context.SaveChangesAsync();
-
-            return MapToDTO(vaccinePackage);
         }
 
         public async Task<bool> UpdateVaccinePackageAsync(int id, VaccinePackageDTO packageDto)
         {
-            var existingPackage = await _context.VaccinePackages
-                .Include(vp => vp.PackageDetails)
-                .FirstOrDefaultAsync(vp => vp.Id == id);
-
-            if (existingPackage == null) return false;
-
-            // Cập nhật thông tin package
-            existingPackage.Name = packageDto.Name;
-            existingPackage.Description = packageDto.Description;
-            existingPackage.Price = packageDto.Price;
-
-            // Xóa danh sách VaccinePackageDetail cũ
-            _context.VaccinePackageDetails.RemoveRange(existingPackage.PackageDetails);
-
-            // Thêm danh sách VaccinePackageDetail mới
-            if (packageDto.PackageDetails != null && packageDto.PackageDetails.Any())
+            using (var context = _contextFactory.CreateDbContext())
             {
-                foreach (var pd in packageDto.PackageDetails)
-                {
-                    existingPackage.PackageDetails.Add(new VaccinePackageDetail
-                    {
-                        VaccineId = pd.VaccineId,
-                        Quantity = pd.Quantity
-                    });
-                }
-            }
+                var existingPackage = await context.VaccinePackages
+                    .Include(vp => vp.PackageDetails)
+                    .FirstOrDefaultAsync(vp => vp.Id == id);
 
-            await _context.SaveChangesAsync();
-            return true;
+                if (existingPackage == null) return false;
+
+                existingPackage.Name = packageDto.Name;
+                existingPackage.Description = packageDto.Description;
+                existingPackage.Price = packageDto.Price;
+
+                context.VaccinePackageDetails.RemoveRange(existingPackage.PackageDetails);
+
+                if (packageDto.PackageDetails != null && packageDto.PackageDetails.Any())
+                {
+                    foreach (var pd in packageDto.PackageDetails)
+                    {
+                        existingPackage.PackageDetails.Add(new VaccinePackageDetail
+                        {
+                            VaccineId = pd.VaccineId,
+                            Quantity = pd.Quantity
+                        });
+                    }
+                }
+
+                await context.SaveChangesAsync();
+                return true;
+            }
         }
 
         public async Task<bool> DeleteVaccinePackageAsync(int id)
         {
-            var vaccinePackage = await _context.VaccinePackages
-                .Include(vp => vp.PackageDetails)
-                .FirstOrDefaultAsync(vp => vp.Id == id);
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                var vaccinePackage = await context.VaccinePackages
+                    .Include(vp => vp.PackageDetails)
+                    .FirstOrDefaultAsync(vp => vp.Id == id);
 
-            if (vaccinePackage == null) return false;
+                if (vaccinePackage == null) return false;
 
-            // Xóa VaccinePackageDetail trước
-            _context.VaccinePackageDetails.RemoveRange(vaccinePackage.PackageDetails);
+                context.VaccinePackageDetails.RemoveRange(vaccinePackage.PackageDetails);
+                context.VaccinePackages.Remove(vaccinePackage);
 
-            // Xóa VaccinePackage
-            _context.VaccinePackages.Remove(vaccinePackage);
-
-            await _context.SaveChangesAsync();
-            return true;
+                await context.SaveChangesAsync();
+                return true;
+            }
         }
 
         private static VaccinePackageDTO MapToDTO(VaccinePackage vp)
@@ -144,15 +157,18 @@ namespace Repository.Repository
 
         public async Task<List<VaccinePackageDTO>> GetListVaccinePackagesAsync()
         {
-            return await _context.VaccinePackages
-                .Select(p => new VaccinePackageDTO
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price
-                })
-                .ToListAsync();
+            using (var context = _contextFactory.CreateDbContext())
+            {
+                return await context.VaccinePackages
+                    .Select(p => new VaccinePackageDTO
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price
+                    })
+                    .ToListAsync();
+            }
         }
     }
 }

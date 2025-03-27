@@ -33,9 +33,9 @@ namespace Repository.Repository
 
         public async Task<User> GetByUsernameAsync(string username)
         {
-                var normalizedUsername = username.ToLower();
-                return await _context.Users
-                    .FirstOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
+            var normalizedUsername = username.ToLower();
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
         }
 
         public async Task<UserInfoDTO> GetByIdAsync(int id)
@@ -94,7 +94,7 @@ namespace Repository.Repository
 
         public async Task<User> CreateUserAsync(string username, string password,
                 string fullName, string email, string? phoneNumber,
-                string? address, string? gender,string role, DateTime? birthdate)
+                string? address, string? gender, string role, DateTime? birthdate)
         {
             // Validate required fields
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)
@@ -105,7 +105,7 @@ namespace Repository.Repository
 
             // Check for existing username
             if (await UsernameExistsAsync(username))
-        {
+            {
                 throw new InvalidOperationException("Username already exists");
             }
 
@@ -152,12 +152,12 @@ namespace Repository.Repository
             catch (DbUpdateException ex)
             {
                 throw new InvalidOperationException("Error creating user in database", ex);
-                }
             }
+        }
         private async Task<bool> EmailExistsAsync(string email)
-            {
+        {
             return await _context.Users.AnyAsync(u => u.Email == email);
-            }
+        }
 
         public async Task<bool> UsernameExistsAsync(string username)
         {
@@ -179,24 +179,34 @@ namespace Repository.Repository
 
         public async Task<IEnumerable<UserInfoDTO>> GetAllUsers()
         {
-            var users = await _context.Users.ToListAsync();
-
-            return users.Select(user => new UserInfoDTO
+            try
             {
-                Id = user.Id,
-                Username = user.Username,
-                FullName = user.FullName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Role = user.Role,
-                Address = user.Address,
-                Gender = user.Gender,
-                Birthdate = user.Birthdate,
-                Specialty = user.Specialty,
-                LicenseNumber = user.LicenseNumber,
-                Position = user.Position,
-                YearsOfExperience = user.YearsOfExperience
-            });
+                using (var _context = new PRNFinalProjectDBContext())
+                {
+                    var users = await _context.Users.ToListAsync();
+
+                    return users.Select(user => new UserInfoDTO
+                    {
+                        Id = user.Id,
+                        Username = user.Username,
+                        FullName = user.FullName,
+                        Email = user.Email,
+                        PhoneNumber = user.PhoneNumber,
+                        Role = user.Role,
+                        Address = user.Address,
+                        Gender = user.Gender,
+                        Birthdate = user.Birthdate,
+                        Specialty = user.Specialty,
+                        LicenseNumber = user.LicenseNumber,
+                        Position = user.Position,
+                        YearsOfExperience = user.YearsOfExperience
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error getting all users", ex);
+            }
         }
 
         public async Task<List<UserInfoDTO>> GetAllUsersAsync()
