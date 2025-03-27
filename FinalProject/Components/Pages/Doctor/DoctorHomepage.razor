@@ -6,10 +6,12 @@
 @using Microsoft.Extensions.Logging
 @inject IAppointmentRepository AppointmentRepository
 @inject IAppointmentDetailRepository AppointmentDetailRepository
+@inject IVaccineRepository VaccineRepository
+@inject IVaccinePackageRepository VaccinePackageRepository
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 @inject ILogger<DoctorHomepage> Logger
-@layout FinalProject.Components.Layout.LandingLayout.Landing1
+@layout FinalProject.Components.Layout.DoctorLayout.DoctorLayout
 <PageTitle>Home - My Appointments</PageTitle>
 
 <h3>Welcome to the Appointment System</h3>
@@ -87,8 +89,26 @@ else
                                 <ValidationSummary />
                                 <p><strong>Child Name:</strong> @selectedAppointment.ChildName</p>
                                 <p><strong>Date:</strong> @selectedAppointment.AppointmentDate.ToShortDateString()</p>
-                                <p><strong>Vaccine:</strong> @(selectedAppointment.VaccineName ?? "N/A")</p>
-                                <p><strong>Package:</strong> @(selectedAppointment.VaccinePackageName ?? "N/A")</p>
+                                <div class="form-group">
+                                    <label><strong>Vaccine:</strong></label>
+                                    <InputSelect @bind-Value="selectedAppointment.VaccineId" class="form-control" @oninput="() => { if (selectedAppointment.VaccineId.HasValue) selectedAppointment.VaccinePackageId = null; }">
+                                        <option value="">None</option>
+                                        @foreach (var vaccine in vaccines)
+                                        {
+                                            <option value="@vaccine.Id">@vaccine.Name</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                                <div class="form-group">
+                                    <label><strong>Vaccine Package:</strong></label>
+                                    <InputSelect @bind-Value="selectedAppointment.VaccinePackageId" class="form-control" @oninput="() => { if (selectedAppointment.VaccinePackageId.HasValue) selectedAppointment.VaccineId = null; }">
+                                        <option value="">None</option>
+                                        @foreach (var package in vaccinePackages)
+                                        {
+                                            <option value="@package.Id">@package.Name</option>
+                                        }
+                                    </InputSelect>
+                                </div>
                                 <div class="form-group">
                                     <label><strong>Appointment Status:</strong></label>
                                     <InputSelect @bind-Value="selectedAppointment.Status" class="form-control">
@@ -160,7 +180,7 @@ else
     <div class="modal-backdrop fade show" @onclick="CloseModal"></div>
 }
 
-@if (!string.IsNullOrEmpty(errorMessage))
+@if (!string.IsNullOrEmpty(errorMessage) && appointments != null)
 {
     <div class="alert alert-danger">@errorMessage</div>
 }
@@ -169,6 +189,8 @@ else
     private List<AppointmentDTO> appointments = new List<AppointmentDTO>();
     private AppointmentDTO? selectedAppointment;
     private AppointmentDetailDTO? selectedAppointmentDetails;
+    private List<VaccineDTO> vaccines = new List<VaccineDTO>();
+    private List<VaccinePackageDTO> vaccinePackages = new List<VaccinePackageDTO>();
     private string errorMessage = "";
     private bool showModal = false;
     private bool isEditing = false;
@@ -195,11 +217,14 @@ else
                 Logger.LogWarning("No user ID found in authentication state");
                 errorMessage = "User not authenticated";
             }
+
+            // Load vaccines and vaccine packages for editing
+            vaccines = await VaccineRepository.GetAllVaccinesAsync();
+            vaccinePackages = await VaccinePackageRepository.GetListVaccinePackagesAsync();
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading appointments");
-            errorMessage = "Failed to load appointments";
         }
     }
 
@@ -247,6 +272,14 @@ else
         {
             if (selectedAppointment != null)
             {
+                // Validate that only one of VaccineId or VaccinePackageId is selected
+                if (selectedAppointment.VaccineId.HasValue && selectedAppointment.VaccinePackageId.HasValue)
+                {
+                    errorMessage = "You cannot select both a vaccine and a vaccine package.";
+                    StateHasChanged();
+                    return;
+                }
+
                 // Sync AppointmentDetail status with Appointment status if applicable
                 if (selectedAppointmentDetails != null)
                 {

@@ -1,0 +1,178 @@
+﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="page d-flex flex-column min-vh-100">
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark shadow" style="background: linear-gradient(135deg, #1e3c72, #2a5298, #00c4ff);">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="/doctor/appointments">
+                    <span class="brand-text">Doctor Portal</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link px-3 py-2 rounded @(Navigation.Uri.Contains("/doctor/appointments") ? "active" : "")" href="/doctor/appointments">My Appointments</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3 py-2 rounded @(Navigation.Uri.Contains("/doctor/create-appointment") ? "active" : "")" href="/doctor/create-appointment">Create Appointment</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item d-flex align-items-center">
+                            <AuthorizeView>
+                                <Authorized>
+                                    <span class="greeting-text me-3">
+                                        Hello, @context.User.Identity.Name
+                                    </span>
+                                    <a class="nav-link btn btn-outline-light px-3 py-1" href="/logout">Logout</a>
+                                </Authorized>
+                                <NotAuthorized>
+                                    <a class="nav-link btn btn-light text-primary px-3 py-1" href="/login">Login</a>
+                                </NotAuthorized>
+                            </AuthorizeView>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mt-5 flex-grow-1">
+        <div class="card shadow-lg p-4 rounded-3 content-card">
+            @Body
+        </div>
+    </main>
+
+    <footer class="footer mt-auto py-4" style="background: linear-gradient(135deg, #1e3c72, #2a5298);">
+        <div class="container text-center">
+            <span class="fw-light text-light">© 2025 Doctor Portal - Crafted with Care</span>
+        </div>
+    </footer>
+</div>
+
+<style>
+    /* Global Layout */
+    .page {
+        background: #f0f4f8;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Navbar Styling */
+    .navbar {
+        padding: 1rem 1.5rem;
+        border-bottom: 4px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar-brand {
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+        transition: transform 0.3s ease;
+    }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+
+    .brand-text {
+        background: -webkit-linear-gradient(45deg, #fff, #e0f7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .nav-link {
+        color: #e0f7ff !important;
+        font-weight: 500;
+        margin: 0 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .nav-link:hover {
+            color: #fff !important;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background: #fff;
+            color: #1e3c72 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+    .btn-outline-light {
+        border-color: #e0f7ff;
+        color: #e0f7ff;
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-light:hover {
+            background: #fff;
+            color: #1e3c72 !important;
+            transform: translateY(-2px);
+        }
+
+    .btn-light {
+        background: #fff;
+        color: #1e3c72;
+        transition: all 0.3s ease;
+    }
+
+        .btn-light:hover {
+            background: #e0f7ff;
+            color: #1e3c72;
+            transform: translateY(-2px);
+        }
+
+    /* Greeting Text */
+    .greeting-text {
+        font-size: 1.5rem; /* Increased size */
+        font-weight: 600;
+        background: -webkit-linear-gradient(45deg, #fff, #e0f7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Main Content Card */
+    .content-card {
+        background: #fff;
+        border: none;
+        border-radius: 12px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    /* Footer */
+    .footer {
+        border-top: 4px solid rgba(255, 255, 255, 0.1);
+    }
+
+        .footer span {
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+    /* Material Icons */
+    .material-icons {
+        vertical-align: middle;
+        font-size: 1.2rem;
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (!authState.User.Identity.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+}
