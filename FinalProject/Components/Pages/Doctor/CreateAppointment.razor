@@ -1,0 +1,252 @@
+﻿@page "/doctor/create-appointment"
+@rendermode InteractiveServer
+@using Repository.Interface
+@using Data.DTOs
+@using Data.Entities
+@using System.Security.Claims
+@using Microsoft.Extensions.Logging
+@inject IAppointmentRepository AppointmentRepository
+@inject IAppointmentDetailRepository AppointmentDetailRepository
+@inject IUserRepository UserRepository
+@inject IChildRepository ChildRepository
+@inject IVaccineRepository VaccineRepository
+@inject IVaccinePackageRepository VaccinePackageRepository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject ILogger<CreateAppointment> Logger
+@layout FinalProject.Components.Layout.LandingLayout.Landing1
+<PageTitle>Create New Appointment</PageTitle>
+
+<h3>Create a New Appointment</h3>
+
+<EditForm Model="newAppointment" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="customerId">Select User</label>
+        <InputSelect id="customerId"
+                     Value="@newAppointment.CustomerId"
+                     ValueChanged="@((int customerId) => OnCustomerChanged(customerId))"
+                     ValueExpression="@(() => newAppointment.CustomerId)"
+                     class="form-control">
+            <option value="0">Select a user...</option>
+            @foreach (var user in users)
+            {
+                <option value="@user.Id">@user.Username</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="() => newAppointment.CustomerId" />
+    </div>
+
+    <div class="form-group">
+        <label for="childId">Select Child</label>
+        <InputSelect id="childId" @bind-Value="newAppointment.ChildId" class="form-control">
+            <option value="0">Select a child...</option>
+            @foreach (var child in children)
+            {
+                <option value="@child.Id">@child.FullName</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="() => newAppointment.ChildId" />
+    </div>
+
+    <div class="form-group">
+        <label for="vaccineId">Select Vaccine (Optional)</label>
+        <InputSelect id="vaccineId" @bind-Value="newAppointment.VaccineId" class="form-control">
+            <option value="">None</option>
+            @foreach (var vaccine in vaccines)
+            {
+                <option value="@vaccine.Id">@vaccine.Name</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="() => newAppointment.VaccineId" />
+    </div>
+
+    <div class="form-group">
+        <label for="vaccinePackageId">Select Vaccine Package (Optional)</label>
+        <InputSelect id="vaccinePackageId" @bind-Value="newAppointment.VaccinePackageId" class="form-control">
+            <option value="">None</option>
+            @foreach (var package in vaccinePackages)
+            {
+                <option value="@package.Id">@package.Name</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="() => newAppointment.VaccinePackageId" />
+    </div>
+
+    <div class="form-group">
+        <label for="appointmentDate">Appointment Date</label>
+        <InputDate id="appointmentDate" @bind-Value="newAppointment.AppointmentDate" class="form-control" />
+        <ValidationMessage For="() => newAppointment.AppointmentDate" />
+    </div>
+
+    <div class="form-group">
+        <label for="notes">Notes</label>
+        <InputTextArea id="notes" @bind-Value="newAppointment.Notes" class="form-control" />
+        <ValidationMessage For="() => newAppointment.Notes" />
+    </div>
+
+    @if (newAppointmentDetails != null)
+    {
+        <div class="form-group">
+            <label for="diagnosis">Diagnosis</label>
+            <InputText id="diagnosis" @bind-Value="newAppointmentDetails.Diagnosis" class="form-control" />
+            <ValidationMessage For="() => newAppointmentDetails.Diagnosis" />
+        </div>
+
+        <div class="form-group">
+            <label for="treatment">Treatment</label>
+            <InputText id="treatment" @bind-Value="newAppointmentDetails.Treatment" class="form-control" />
+            <ValidationMessage For="() => newAppointmentDetails.Treatment" />
+        </div>
+
+        <div class="form-group">
+            <label for="detailStatus">Detail Status</label>
+            <InputSelect id="detailStatus" @bind-Value="newAppointmentDetails.Status" class="form-control">
+                <option value="Created_Urgent">Created_Urgent</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+            </InputSelect>
+            <ValidationMessage For="() => newAppointmentDetails.Status" />
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary mt-3">Create Appointment</button>
+    <button type="button" class="btn btn-secondary mt-3" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success mt-3">@successMessage</div>
+}
+
+@code {
+    private CreateAppointmentDTO newAppointment = new CreateAppointmentDTO();
+    private AppointmentDetailDTO newAppointmentDetails = new AppointmentDetailDTO();
+    private List<UserInfoDTO> users = new List<UserInfoDTO>();
+    private List<Child> children = new List<Child>();
+    private List<VaccineDTO> vaccines = new List<VaccineDTO>();
+    private List<VaccinePackageDTO> vaccinePackages = new List<VaccinePackageDTO>();
+    private string errorMessage = "";
+    private string successMessage = "";
+    private int doctorId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var doctorIdClaim = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (!string.IsNullOrEmpty(doctorIdClaim))
+            {
+                doctorId = int.Parse(doctorIdClaim);
+                newAppointmentDetails.DoctorId = doctorId;
+                newAppointment.Status = "Created_Urgent";
+                newAppointmentDetails.Status = "Created_Urgent";
+                Logger.LogInformation($"Initialized with DoctorId: {doctorId}");
+            }
+            else
+            {
+                Logger.LogWarning("No doctor ID found in authentication state");
+                errorMessage = "Doctor not authenticated";
+                return;
+            }
+
+            users = await UserRepository.GetAllUsersAsync();
+            vaccines = await VaccineRepository.GetAllVaccinesAsync();
+            vaccinePackages = await VaccinePackageRepository.GetListVaccinePackagesAsync();
+            Logger.LogInformation($"Loaded {users.Count} users, {vaccines.Count} vaccines, {vaccinePackages.Count} vaccine packages");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error initializing create appointment page");
+            errorMessage = "Failed to initialize page";
+        }
+    }
+
+    private async Task OnCustomerChanged(int customerId)
+    {
+        try
+        {
+            newAppointment.CustomerId = customerId;
+            if (customerId > 0)
+            {
+                children = await ChildRepository.GetChildrenByCustomerIdAsync(customerId);
+                newAppointment.ChildId = 0;
+                Logger.LogInformation($"Loaded {children.Count} children for CustomerId: {customerId}");
+            }
+            else
+            {
+                children.Clear();
+                newAppointment.ChildId = 0;
+                Logger.LogInformation("Cleared children list due to invalid CustomerId");
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error loading children for CustomerId: {customerId}");
+            errorMessage = "Failed to load children";
+            children.Clear();
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            if (newAppointment.CustomerId == 0 || newAppointment.ChildId == 0)
+            {
+                errorMessage = "Please select a user and a child.";
+                return;
+            }
+
+            // Sync status between Appointment and AppointmentDetail
+            newAppointmentDetails.Status = newAppointment.Status;
+
+            // Pass both DTOs to create Appointment and AppointmentDetail
+            var result = await AppointmentRepository.CreateAppointmentForDoctorAsync(newAppointment, newAppointmentDetails, doctorId);
+            Logger.LogInformation($"Create result: {result}");
+
+            if (result == "Appointment successfully created.")
+            {
+                successMessage = result;
+                errorMessage = "";
+                newAppointment = new CreateAppointmentDTO { Status = "Created_Urgent" };
+                newAppointmentDetails = new AppointmentDetailDTO { DoctorId = doctorId, Status = "Created_Urgent" };
+                children.Clear();
+                StateHasChanged();
+
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/doctor/appointments");
+            }
+            else
+            {
+                errorMessage = result;
+                successMessage = "";
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error creating appointment");
+            errorMessage = "Failed to create appointment: " + ex.Message;
+            successMessage = "";
+            StateHasChanged();
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/doctor/appointments");
+    }
+}

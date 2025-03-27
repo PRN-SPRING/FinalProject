@@ -1,0 +1,261 @@
+﻿@page "/create-appointment"
+@using Repository.Interface
+@using Data.Entities
+@using Data.DTOs
+@using System.Security.Claims
+@inject IChildRepository ChildRepository
+@inject IVaccineRepository VaccineRepository
+@inject IVaccinePackageRepository VaccinePackageRepository
+@inject IAppointmentRepository AppointmentRepository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@layout FinalProject.Components.Layout.LandingLayout.Landing1
+@rendermode InteractiveServer
+<PageTitle>Create Appointment</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <h3 class="text-center mb-4">Create Appointment</h3>
+
+        <EditForm Model="@appointment" OnValidSubmit="HandleValidSubmit" FormName="CreateAppointment">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="child">Select Child</label>
+                <InputSelect @bind-Value="appointment.ChildId" class="form-control">
+                    <option value="">-- Select Child --</option>
+                    @foreach (var child in children)
+                    {
+                        <option value="@child.Id">@child.FullName</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="form-group text-center mt-3">
+                <button type="button" class="btn mx-2 @(isSelectingVaccine ? "btn-primary" : "btn-outline-primary")"
+                        @onclick="ToggleToVaccine">
+                    Select Vaccine
+                </button>
+
+                <button type="button" class="btn mx-2 @(isSelectingVaccinePackage ? "btn-secondary" : "btn-outline-secondary")"
+                        @onclick="ToggleToVaccinePackage">
+                    Select Vaccine Package
+                </button>
+            </div>
+
+            @if (isSelectingVaccine)
+            {
+                <div class="form-group mt-3">
+                    <label for="vaccine">Select Vaccine</label>
+                    <InputSelect @bind-Value="selectedVaccineId" class="form-control">
+                        <option value="0">-- Select Vaccine --</option>
+                        @foreach (var vaccine in vaccines)
+                        {
+                            <option value="@vaccine.Id">@vaccine.Name - $@vaccine.Price</option>
+                        }
+                    </InputSelect>
+                </div>
+            }
+
+            @if (isSelectingVaccinePackage)
+            {
+                <div class="form-group mt-3">
+                    <label for="vaccinePackage">Select Vaccine Package</label>
+                    <InputSelect @bind-Value="selectedVaccinePackageId" class="form-control">
+                        <option value="0">-- Select Vaccine Package --</option>
+                        @foreach (var package in vaccinePackages)
+                        {
+                            <option value="@package.Id">@package.Name - $@package.Price</option>
+                        }
+                    </InputSelect>
+                </div>
+            }
+
+            <div class="form-group mt-3">
+                <label for="appointmentDate">Appointment Date</label>
+                <InputDate @bind-Value="appointment.AppointmentDate" class="form-control" />
+            </div>
+
+            <div class="form-group mt-3">
+                <label for="notes">Notes</label>
+                <InputTextArea @bind-Value="appointment.Notes" class="form-control" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3">@errorMessage</div>
+            }
+
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-success" @onclick="ShowModal" disabled="@(CanSubmit() ? null : "disabled")">Create Appointment</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<!-- Payment Confirmation Modal -->
+<div class="modal fade @(showModal ? "show d-block" : "d-none")" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Transaction</h5>
+                <button type="button" class="close" @onclick="CloseModal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="img-placeholder border rounded p-3 mb-2 bg-light d-flex align-items-center justify-content-center">
+                    <img src="@PaymentUrl" alt="Transaction Receipt" class="img-fluid" style="max-width: 80%; max-height: 100%;" />
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button type="button" class="btn btn-success" @onclick="HandleValidSubmit">I have done the transaction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop fade @(showModal ? "show" : "d-none")"></div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    private CreateAppointmentDTO appointment { get; set; } = new()
+    {
+        VaccineId = null,
+        AppointmentDate = DateTime.Now,
+        VaccinePackageId = null
+    };
+
+
+    private List<Child> children = new List<Child>();
+    private List<VaccineDTO> vaccines = new List<VaccineDTO>();
+    private List<VaccinePackage> vaccinePackages = new List<VaccinePackage>();
+    private bool showModal = false;
+    [SupplyParameterFromForm]
+    private int? selectedVaccineId { get; set; } 
+    [SupplyParameterFromForm]
+    private int? selectedVaccinePackageId { get; set; }
+    private bool isSelectingVaccine;
+    private bool isSelectingVaccinePackage;
+    private string errorMessage = "";
+
+    private string PaymentUrl { get; set; } = "";
+
+    // Call this method when you need to show the modal or refresh the payment amount.
+    private async Task LoadPaymentUrl()
+    {
+        PaymentUrl = await GeneratePaymentAmount();
+    }
+
+    // Example: Call LoadPaymentUrl when showing the modal
+    private async Task ShowModal()
+    {
+        await LoadPaymentUrl();
+        showModal = true;
+    }
+
+
+    // Close the modal
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private bool CanSubmit()
+    {
+        return appointment.ChildId > 0 // Ensure a child is selected
+            && (selectedVaccineId.HasValue || selectedVaccinePackageId.HasValue) // Ensure either a vaccine or vaccine package is selected
+            && (!isSelectingVaccine || selectedVaccineId.GetValueOrDefault() > 0) // Ensure a vaccine is selected if choosing vaccine
+            && (!isSelectingVaccinePackage || selectedVaccinePackageId.GetValueOrDefault() > 0); // Ensure a vaccine package is selected if choosing package
+    }
+
+    // Toggle methods that also clear the opposing selection
+    private void ToggleToVaccine()
+    {
+        isSelectingVaccine = true;
+        isSelectingVaccinePackage = false;
+        selectedVaccinePackageId = 0; // Reset the vaccine package selection
+    }
+
+    private void ToggleToVaccinePackage()
+    {
+        isSelectingVaccine = false;
+        isSelectingVaccinePackage = true;
+        selectedVaccineId = 0; // Reset the vaccine selection
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+        isSelectingVaccine = true;
+        isSelectingVaccinePackage = false;
+        // Fetch the list of children, vaccines, and vaccine packages
+        if (!string.IsNullOrEmpty(userId))
+        {
+            children = await ChildRepository.GetChildrenByCustomerIdAsync(int.Parse(userId));
+            appointment.CustomerId = int.Parse(userId);
+        }
+        vaccines = (await VaccineRepository.GetVaccinesAsync()).ToList();
+        vaccinePackages = (await VaccinePackageRepository.GetAllVaccinePackagesAsync()).ToList();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+
+        // Create a new AppointmentDTO object and populate it with form data
+        var appointmentDto = new CreateAppointmentDTO
+            {
+                CustomerId = appointment.CustomerId, // Set from the authenticated user
+                ChildId = appointment.ChildId,
+                VaccineId = selectedVaccineId == 0 ? null : selectedVaccineId,
+                VaccinePackageId = selectedVaccinePackageId == 0 ? null : selectedVaccinePackageId,
+                AppointmentDate = appointment.AppointmentDate,
+                Status = "Created", // Default status
+                Notes = appointment.Notes
+            };
+        // Call the repository to create the appointment
+
+        await AppointmentRepository.CreateAppointmentAsync(appointmentDto);
+        Navigation.NavigateTo("/appointments");
+
+
+    }
+
+    private async Task<string> GeneratePaymentAmount()
+    {
+        string account = "https://api.vietqr.io/image/970432-0354031289-Hpzk74d.jpg?accountName=NG%20CONG%20MINH%20TUAN";
+        string result = "";
+        try {
+            if (isSelectingVaccine)
+            {
+                var vaccine = await VaccineRepository.GetVaccineByIdAsync(selectedVaccineId.Value);
+                decimal amount = vaccine.Price;
+                result = account + "&amount=" + amount;
+            }
+            else
+            {
+                var package = await VaccinePackageRepository.GetVaccinePackageByIdAsync(selectedVaccinePackageId.Value);
+                decimal amount = package.Price;
+                result = account + "&amount=" + amount;
+            }
+            return result;
+        }
+        catch (InvalidOperationException e){
+            errorMessage = "Must select vaccine or vaccine package";
+            return errorMessage;
+        }
+    }
+
+}

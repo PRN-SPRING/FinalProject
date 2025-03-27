@@ -1,0 +1,186 @@
+﻿@page "/staff/vaccinepackages/create"
+@attribute [Authorize(Roles = "Staff")]
+@using Microsoft.EntityFrameworkCore
+@using Data.DTOs
+@using Repository.Interface
+@inject IVaccinePackageRepository VaccinePackageRepository
+@inject IVaccineRepository VaccineRepository
+@inject NavigationManager NavigationManager
+@layout FinalProject.Components.Layout.StaffLayout.StaffLayout
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Create Vaccine Package</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-primary text-center fw-bold">Create Vaccine Package</h2>
+        <hr />
+
+        <EditForm Model="VaccinePackage" OnValidSubmit="AddVaccinePackage">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="alert alert-danger" role="alert" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Package Name:</label>
+                        <InputText @bind-Value="VaccinePackage.Name" class="form-control" placeholder="Enter package name..." />
+                        <ValidationMessage For="() => VaccinePackage.Name" class="text-danger" />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Price:</label>
+                        <InputNumber @bind-Value="VaccinePackage.Price" class="form-control" placeholder="Enter price..." />
+                        <ValidationMessage For="() => VaccinePackage.Price" class="text-danger" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Description:</label>
+                <InputText @bind-Value="VaccinePackage.Description" class="form-control" placeholder="Enter description..." />
+                <ValidationMessage For="() => VaccinePackage.Description" class="text-danger" />
+            </div>
+
+            <h4 class="mt-4 text-secondary">Vaccine Details</h4>
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">Select Vaccine:</label>
+                    <InputSelect @bind-Value="SelectedVaccineId" class="form-select">
+                        <option value="">-- Select Vaccine --</option>
+                        @foreach (var vaccine in Vaccines)
+                        {
+                            <option value="@vaccine.Id">@vaccine.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Quantity:</label>
+                    <InputNumber @bind-Value="SelectedQuantity" class="form-control" placeholder="Enter quantity..." />
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-outline-success fw-bold" @onclick="AddVaccineDetail">
+                <i class="fas fa-plus"></i> Add Vaccine
+            </button>
+
+            @if (VaccinePackage.PackageDetails.Any())
+            {
+                <ul class="list-group mt-3">
+                    @foreach (var detail in VaccinePackage.PackageDetails)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><strong>@detail.VaccineName</strong> - Quantity: @detail.Quantity</span>
+                            <button type="button" class="btn btn-sm btn-danger" @onclick="() => RemoveVaccineDetail(detail)">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="mt-3 text-muted">No vaccines added to the package yet.</p>
+            }
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="/staff/manage-vaccinepackages" class="btn btn-outline-secondary fw-bold">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-primary fw-bold">
+                    <i class="fas fa-check"></i> Create
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private VaccinePackageDTO VaccinePackage { get; set; } = new()
+    {
+        PackageDetails = new List<VaccinePackageDetailDTO>()
+    };
+
+    private List<VaccineDTO> Vaccines = new();
+    private int SelectedVaccineId { get; set; }
+    private int SelectedQuantity { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Vaccines = (await VaccineRepository.GetVaccinesAsync()).ToList();
+    }
+
+    private void AddVaccineDetail()
+    {
+        var vaccine = Vaccines.FirstOrDefault(v => v.Id == SelectedVaccineId);
+        if (vaccine == null)
+        {
+            return;
+        }
+
+        if (SelectedQuantity <= 0)
+        {
+            Console.WriteLine("Invalid quantity.");
+            return;
+        }
+
+        VaccinePackage.PackageDetails.Add(new VaccinePackageDetailDTO
+        {
+            VaccineId = vaccine.Id,
+            VaccineName = vaccine.Name,
+            Quantity = SelectedQuantity
+        });
+
+        // Reset fields after adding
+        SelectedVaccineId = 0;
+        SelectedQuantity = 0;
+    }
+
+    private void RemoveVaccineDetail(VaccinePackageDetailDTO detail)
+    {
+        VaccinePackage.PackageDetails.Remove(detail);
+    }
+
+    private async Task AddVaccinePackage()
+    {
+        if (!VaccinePackage.PackageDetails.Any())
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Error!",
+                text = "Package must contain at least one vaccine.",
+                icon = "error",
+                confirmButtonText = "OK"
+            });
+            return;
+        }
+
+        var newPackage = await VaccinePackageRepository.CreateVaccinePackageAsync(VaccinePackage);
+        if (newPackage != null)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Success!",
+                text = "Vaccine package has been created successfully.",
+                icon = "success",
+                confirmButtonText = "OK"
+            });
+
+            NavigationManager.NavigateTo("/staff/manage-vaccinepackages");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Error!",
+                text = "Failed to create vaccine package. Please try again.",
+                icon = "error",
+                confirmButtonText = "OK"
+            });
+        }
+    }
+}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

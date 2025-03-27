@@ -1,0 +1,58 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand mx-auto" href="">Staff Dashboard</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="staff/home" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="staff/manage-appointment">
+                <span class="bi bi-calendar-check-fill nav-menu" aria-hidden="true"></span> Manage Appointment
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="staff/manage-vaccines">
+                <span class="bi bi-shield-plus nav-menu" aria-hidden="true"></span> Manage Vaccine
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="staff/manage-vaccinepackages">
+                <span class="bi bi-box-seam nav-menu" aria-hidden="true"></span> Manage Vaccine Packages
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="staff/manage-service">
+                <span class="bi bi-people-fill nav-menu" aria-hidden="true"></span> Manage Customer
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+<style>
+    .nav-link {
+        display: flex;
+        align-items: center;
+        line-height: 1.5;
+    }
+
+    .nav-menu {
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+
+    .nav-link span {
+        line-height: 1.5;
+    }
+</style>

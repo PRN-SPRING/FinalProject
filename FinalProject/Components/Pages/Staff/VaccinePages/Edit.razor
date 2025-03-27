@@ -1,0 +1,229 @@
+﻿@page "/staff/vaccines/edit"
+@attribute [Authorize(Roles = "Staff")]
+@using Microsoft.EntityFrameworkCore
+@using Data.DTOs
+@using Repository
+@using Repository.Interface
+@inject IVaccineRepository VaccineRepository
+@inject NavigationManager NavigationManager
+@layout FinalProject.Components.Layout.StaffLayout.StaffLayout
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Edit Vaccine</PageTitle>
+
+<div class="edit-container">
+    <h1 class="page-title">Edit Vaccine</h1>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Edit Details</h2>
+        </div>
+        <div class="card-body">
+            @if (Vaccine is null)
+            {
+                <p class="loading-text"><em>Loading...</em></p>
+            }
+            else
+            {
+                <EditForm Model="Vaccine" OnValidSubmit="UpdateVaccine" FormName="edit-vaccine">
+                    <DataAnnotationsValidator />
+
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <InputText id="name" @bind-Value="Vaccine.Name" class="form-control" />
+                        <ValidationMessage For="() => Vaccine.Name" class="text-danger" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <InputTextArea id="description" @bind-Value="Vaccine.Description" class="form-control" rows="4" />
+                        <ValidationMessage For="() => Vaccine.Description" class="text-danger" />
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="minagetouse">Min Age</label>
+                            <InputNumber id="minagetouse" @bind-Value="Vaccine.MinAgeToUse" class="form-control" />
+                            <ValidationMessage For="() => Vaccine.MinAgeToUse" class="text-danger" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="maxagetouse">Max Age</label>
+                            <InputNumber id="maxagetouse" @bind-Value="Vaccine.MaxAgeToUse" class="form-control" />
+                            <ValidationMessage For="() => Vaccine.MaxAgeToUse" class="text-danger" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <InputNumber id="price" @bind-Value="Vaccine.Price" class="form-control" />
+                        <ValidationMessage For="() => Vaccine.Price" class="text-danger" />
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <a href="/staff/manage-vaccines" class="btn btn-secondary">Back to List</a>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private VaccineDTO? Vaccine { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Vaccine ??= await VaccineRepository.GetVaccineByIdAsync(Id);
+
+        if (Vaccine is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task UpdateVaccine()
+    {
+        Vaccine.Id = Id;
+
+        if (Vaccine == null || Vaccine.Id <= 0)
+        {
+            NavigationManager.NavigateTo("notfound");
+            return;
+        }
+
+        try
+        {
+            await VaccineRepository.UpdateVaccineAsync(Vaccine);
+
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Success!",
+                text = "Vaccine has been updated successfully.",
+                icon = "success",
+                confirmButtonText = "OK"
+            });
+
+            NavigationManager.NavigateTo("/staff/manage-vaccines");
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!await VaccineExistsAsync(Vaccine!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+    }
+
+    private async Task<bool> VaccineExistsAsync(int id)
+    {
+        return await VaccineRepository.VaccineExistsAsync(id);
+    }
+}
+
+<style>
+    .edit-container {
+        max-width: 900px;
+        margin: 0px auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-title {
+        text-align: center;
+        color: #34495e;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: #3498db;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-size: 18px;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .loading-text {
+        text-align: center;
+        color: #e67e22;
+        font-weight: bold;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 15px;
+    }
+
+    .form-control {
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+
+    .btn-secondary {
+        background-color: #7f8c8d;
+        color: white;
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background-color: #95a5a6;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

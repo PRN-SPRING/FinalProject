@@ -1,0 +1,49 @@
+﻿@page "/admin"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Data.Entities
+@using Data
+@implements IAsyncDisposable
+@layout FinalProject.Components.Layout.AdminLayout.AdminMainLayout
+@inject IDbContextFactory<Data.PRNFinalProjectDBContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="users/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Users">
+    <PropertyColumn Property="user => user.Username" />
+    <PropertyColumn Property="user => user.Password" />
+    <PropertyColumn Property="user => user.FullName" />
+    <PropertyColumn Property="user => user.Email" />
+    <PropertyColumn Property="user => user.PhoneNumber" />
+    <PropertyColumn Property="user => user.Role" />
+    <PropertyColumn Property="user => user.Address" />
+    <PropertyColumn Property="user => user.Gender" />
+    <PropertyColumn Property="user => user.Birthdate" />
+    <PropertyColumn Property="user => user.Specialty" />
+    <PropertyColumn Property="user => user.LicenseNumber" />
+    <PropertyColumn Property="user => user.Position" />
+    <PropertyColumn Property="user => user.YearsOfExperience" />
+
+    <TemplateColumn Context="user">
+        <a href="@($"user/edit?id={user.Id}")">Edit</a> |
+        <a href="@($"user/details?id={user.Id}")">Details</a> |
+        <a href="@($"user/delete?id={user.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private PRNFinalProjectDBContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

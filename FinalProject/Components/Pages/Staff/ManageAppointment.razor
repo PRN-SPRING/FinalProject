@@ -1,0 +1,523 @@
+﻿@page "/staff/manage-appointment"
+@attribute [Authorize(Roles = "Staff")]
+@using Data.DTOs
+@using Data.Entities
+@using Repository.Interface
+@inject IAppointmentRepository AppointmentRepository
+@inject IAppointmentDetailRepository AppointmentDetailRepository
+@inject IUserRepository UserRepository
+@inject IVaccinationScheduleRepository VaccinationScheduleRepository
+@layout FinalProject.Components.Layout.StaffLayout.StaffLayout
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+@inject IJSRuntime JSRuntime
+
+<div>
+    <PageTitle>Manage Appointments</PageTitle>
+
+    <h2 class="mb-4">Manage Appointments</h2>
+
+    <!-- Search Bar for Filtering -->
+    <div class="mb-3 d-flex">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search by Customer or Child" @bind="searchQuery" />
+            <button class="btn btn-outline-secondary" type="button" @onclick="SearchAppointments">
+                <i class="fas fa-search"></i> <!-- Icon tìm kiếm (Font Awesome) -->
+            </button>
+        </div>
+    </div>
+
+    <!-- Appointment Table -->
+    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd;">
+        @if (filteredAppointments.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Child</th>
+                        <th>Vaccine</th>
+                        <th>Vaccine Package</th>
+                        <th>Appointment Date</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var appointment in filteredAppointments)
+                    {
+                        <tr>
+                            <td>@appointment.CustomerName</td>
+                            <td>@appointment.ChildName</td>
+                            <td>@(appointment.VaccineName ?? "N/A")</td>
+                            <td>@(appointment.VaccinePackageName ?? "N/A")</td>
+                            <td>@appointment.AppointmentDate.ToString("MM/dd/yyyy")</td>
+                            <td>@appointment.Status</td>
+                            <td>
+                                @(string.IsNullOrEmpty(appointment.Notes)
+                                    ? "No notes"
+                                    : (appointment.Notes.Length > 100
+                                    ? appointment.Notes.Substring(0, 100) + "..."
+                                    : appointment.Notes))
+                            </td>
+                            <td>
+                                @if (appointment.Status == "Created" || appointment.Status == "Created_Urgent")
+                                {
+                                    <button class="btn btn-info" @onclick="() => ShowScheduleModal(appointment)">Schedule</button>
+                                }
+                                @if (appointment.Status == "Completed" || appointment.Status == "Cancelled" || appointment.Status == "Assigned")
+                                {
+                                    <button class="btn btn-primary" @onclick="() => ShowDetailsModal(appointment)">Details</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="d-flex flex-column align-items-center justify-content-center p-4 bg-light rounded" style="min-height: 200px;">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No appointments found</h5>
+                <p class="text-muted">Try adjusting your search criteria.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="modal-body">
+    @if (selectedAppointment != null)
+    {
+        <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="scheduleModalLabel">Schedule Vaccination</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Thông tin cuộc hẹn -->
+                        <div class="border p-3 rounded shadow-sm">
+                            <h5 class="text-primary mb-3">Appointment Details</h5>
+                            <p><strong>Child:</strong> @(selectedAppointment.ChildName ?? "N/A")</p>
+                            <p><strong>Appointment Date:</strong> @selectedAppointment.AppointmentDate.ToString("f")</p>
+                            <p>
+                                <strong>Status:</strong>
+                                <span class="badge bg-success">
+                                    @selectedAppointment.Status
+                                </span>
+                            </p>
+                            <p><strong>Notes:</strong> @selectedAppointment.Notes</p>
+                        </div>
+
+                        <!-- Vaccine & Gói vaccine -->
+                        <div class="border p-3 rounded shadow-sm mt-3">
+                            <h5 class="text-success mb-3">Vaccine Information</h5>
+                            <p><strong>Vaccine:</strong> @(selectedAppointment.VaccineName ?? "Not selected")</p>
+                            <p><strong>Vaccine Package:</strong> @(selectedAppointment.VaccinePackageName ?? "Not selected")</p>
+                        </div>
+
+                        <!-- Ngày tiêm -->
+                        <div class="border p-3 rounded shadow-sm mt-3">
+                            <h5 class="text-danger mb-3">Select Vaccination Date</h5>
+                            <label for="scheduledDate" class="form-label">Vaccination Date</label>
+                            <input type="datetime-local" class="form-control" id="scheduledDate" @bind="scheduledDate" />
+                        </div>
+
+                        <!-- Chọn bác sĩ -->
+                        <div class="border p-3 rounded shadow-sm mt-3">
+                            <h5 class="text-info mb-3">Select Doctor</h5>
+                            <label for="doctorSelect" class="form-label">Doctor</label>
+                            <select id="doctorSelect" class="form-select" @bind="selectedDoctorId">
+                                <option value="">-- Select a doctor --</option>
+                                @foreach (var doctor in doctors)
+                                {
+                                    <option value="@doctor.Id">@doctor.FullName</option>
+                                }
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger me-auto" @onclick="CancelAppointmentCreate">Cancel Appointment</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" @onclick="SaveVaccinationSchedule">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Appointment Detail Modal -->
+<div class="modal-body">
+    @if (selectedAppointmentForDetail != null)
+    {
+        <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="detailsModalLabel">Appointment Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Thông tin chung -->
+                        <div class="border p-3 rounded shadow-sm">
+                            <h5 class="text-primary mb-3">General Information</h5>
+                            <p><strong>Child:</strong> @selectedAppointmentForDetail.ChildName</p>
+                            <p><strong>Appointment Date:</strong> @selectedAppointmentForDetail.AppointmentDate.ToString("f")</p>
+                            <p>
+                                <strong>Status:</strong>
+                                <span class="badge bg-success">
+                                    @selectedAppointmentForDetail.Status
+                                </span>
+                            </p>
+                            <p><strong>Notes:</strong> @selectedAppointmentForDetail.Notes</p>
+                        </div>
+
+                        <!-- Lịch tiêm chủng -->
+                        @if (selectedVaccinationSchedule != null)
+                        {
+                            <div class="border p-3 rounded shadow-sm mt-3">
+                                <h5 class="text-success mb-3">Vaccination Schedule</h5>
+                                <p><strong>Scheduled Date:</strong> @selectedVaccinationSchedule.ScheduledDate.ToString("f")</p>
+                                <p>
+                                    <strong>Status:</strong>
+                                    <span class="badge bg-warning">
+                                        @selectedVaccinationSchedule.Status
+                                    </span>
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning mt-3">No vaccination schedule available.</div>
+                        }
+
+                        <!-- Báo cáo của bác sĩ -->
+                        @if (selectedAppointmentDetail != null)
+                        {
+                            <div class="border p-3 rounded shadow-sm mt-3">
+                                <h5 class="text-danger mb-3">Doctor's Report</h5>
+                                <p><strong>Doctor:</strong> @(selectedAppointmentDetail.DoctorName == null ? "N/A" : selectedAppointmentDetail.DoctorName)</p>
+                                <p>
+                                    <strong>Status:</strong>
+                                    <span class="badge bg-info">
+                                        @selectedAppointmentDetail.Status
+                                    </span>
+                                </p>
+                                <p><strong>Diagnosis:</strong> @selectedAppointmentDetail.Diagnosis</p>
+                                <p><strong>Treatment:</strong> @selectedAppointmentDetail.Treatment</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning mt-3">No appointment details available.</div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        @if (selectedAppointmentForDetail.Status != "Cancelled")
+                        {
+                            <button type="button" class="btn btn-warning" @onclick="CancelAppointment">Cancelled</button>
+                        }
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<AppointmentDTO> appointments = new List<AppointmentDTO>();
+    private List<AppointmentDTO> filteredAppointments = new List<AppointmentDTO>();
+    private List<User> doctors = new List<User>();
+    private string searchQuery = "";
+    private DateTime scheduledDate = DateTime.Now;
+
+    private VaccinationScheduleDTO? selectedVaccinationSchedule;
+    private AppointmentDetailDTO? selectedAppointmentDetail;
+
+    private AppointmentDTO? selectedAppointment = new AppointmentDTO();
+    private AppointmentDTO? selectedAppointmentForDetail = new AppointmentDTO();
+
+    private int? selectedDoctorId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        appointments = (await AppointmentRepository.GetAppointmentsAsync())
+        .OrderByDescending(a => a.AppointmentDate).ToList();
+        filteredAppointments = appointments;
+        doctors = (await UserRepository.GetUsersByRoleAsync("Doctor")).ToList();
+    }
+
+    private void SearchAppointments()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredAppointments = appointments;
+        }
+        else
+        {
+            filteredAppointments = appointments.Where(a =>
+                a.CustomerName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                a.ChildName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(a => a.AppointmentDate).ToList();
+        }
+    }
+
+    private async Task ShowScheduleModal(AppointmentDTO appointment)
+    {
+        if (appointment != null)
+        {
+            selectedAppointment = appointment;
+            scheduledDate = DateTime.Now;
+
+            await OpenModal();
+        }
+    }
+
+    private async Task ShowDetailsModal(AppointmentDTO appointment)
+    {
+        selectedAppointmentForDetail = appointment;
+
+        selectedVaccinationSchedule = await VaccinationScheduleRepository.GetVaccinationScheduleByAppointmentIdAsync(appointment.Id);
+        selectedAppointmentDetail = await AppointmentDetailRepository.GetAppointmentDetailByAppointmentIdAsync(appointment.Id);
+
+        await OpenDetailsModal();
+    }
+
+    private async Task SaveVaccinationSchedule()
+    {
+
+        if (selectedDoctorId == null)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Error!",
+                text = "Please select a doctor.",
+                icon = "error",
+                confirmButtonText = "OK"
+            });
+            return;
+        }
+
+        var vaccinationSchedule = new VaccinationScheduleDTO
+        {
+            ChildId = selectedAppointment.ChildId,
+            VaccineId = selectedAppointment.VaccineId,
+            VaccinePackageId = selectedAppointment.VaccinePackageId,
+            ScheduledDate = scheduledDate,
+            Status = "Pending",
+            AppointmentId = selectedAppointment.Id
+        };
+
+        var appointmentDetail = new AppointmentDetailDTO
+        {
+            AppointmentId = selectedAppointment.Id,
+            DoctorId = selectedDoctorId.Value,
+            Status = "In Progress",
+            Diagnosis = "N/A",
+            Treatment = "N/A"
+        };
+
+        await SaveVaccinationScheduleAsync(vaccinationSchedule, appointmentDetail);
+    }
+
+    private async Task SaveVaccinationScheduleAsync(VaccinationScheduleDTO vaccinationSchedule, AppointmentDetailDTO appointmentDetail)
+    {
+        await VaccinationScheduleRepository.AddVaccinationScheduleAsync(vaccinationSchedule);
+        await AppointmentDetailRepository.AddAppointmentDetailAsync(appointmentDetail);
+
+        selectedAppointment.Status = "Assigned";
+        await AppointmentRepository.UpdateAppointmentAsync(selectedAppointment);
+
+        await Task.Delay(500);
+
+        await JSRuntime.InvokeVoidAsync("Swal.fire", new
+        {
+            title = "Success!",
+            text = "Vaccination schedule has been saved successfully.",
+            icon = "success",
+            confirmButtonText = "OK"
+        });
+
+        await CloseModal();
+    }
+
+    private async Task CancelAppointment()
+    {
+        if (selectedAppointmentForDetail == null)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Error!",
+                text = "No appointment selected.",
+                icon = "error",
+                confirmButtonText = "OK"
+            });
+            return;
+        }
+
+        var result = await JSRuntime.InvokeAsync<object>("Swal.fire", new
+        {
+            title = "Are you sure?",
+            text = "You won't be able to revert this!",
+            icon = "warning",
+            showCancelButton = true,
+            confirmButtonColor = "#3085d6",
+            cancelButtonColor = "#d33",
+            confirmButtonText = "Yes, cancel it!"
+        });
+
+        if (result == null || !((bool?)((System.Text.Json.JsonElement)result).GetProperty("isConfirmed").GetBoolean()) == true)
+        {
+            return; 
+        }
+
+        try
+        {
+            if (selectedVaccinationSchedule != null)
+            {
+                selectedVaccinationSchedule.Status = "Cancelled";
+                await VaccinationScheduleRepository.UpdateVaccinationScheduleAsync(selectedVaccinationSchedule);
+            }
+
+            if (selectedAppointmentDetail != null)
+            {
+                selectedAppointmentDetail.Status = "Cancelled";
+                await AppointmentDetailRepository.UpdateAppointmentDetailAsync(selectedAppointmentDetail);
+            }
+
+            selectedAppointmentForDetail.Status = "Cancelled";
+            await AppointmentRepository.UpdateAppointmentAsync(selectedAppointmentForDetail);
+
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Success!",
+                text = "Appointment cancelled successfully.",
+                icon = "success",
+                confirmButtonText = "OK"
+            });
+
+            await CloseDetailsModal();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Error!",
+                text = $"Failed to cancel appointment: {ex.Message}",
+                icon = "error",
+                confirmButtonText = "OK"
+            });
+        }
+    }
+
+    private async Task CancelAppointmentCreate()
+    {
+        if (selectedAppointment == null)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Error!",
+                text = "No appointment selected.",
+                icon = "error",
+                confirmButtonText = "OK"
+            });
+            return;
+        }
+
+        var result = await JSRuntime.InvokeAsync<object>("Swal.fire", new
+        {
+            title = "Are you sure?",
+            text = "You won't be able to revert this!",
+            icon = "warning",
+            showCancelButton = true,
+            confirmButtonColor = "#3085d6",
+            cancelButtonColor = "#d33",
+            confirmButtonText = "Yes, cancel it!"
+        });
+
+        if (result == null || !((bool?)((System.Text.Json.JsonElement)result).GetProperty("isConfirmed").GetBoolean()) == true)
+        {
+            return;
+        }
+
+        try
+        {
+            selectedAppointment.Status = "Cancelled";
+            await AppointmentRepository.UpdateAppointmentAsync(selectedAppointment);
+
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Success!",
+                text = "Appointment cancelled successfully.",
+                icon = "success",
+                confirmButtonText = "OK"
+            });
+
+            await CloseModal();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("Swal.fire", new
+            {
+                title = "Error!",
+                text = $"Failed to cancel appointment: {ex.Message}",
+                icon = "error",
+                confirmButtonText = "OK"
+            });
+        }
+    }
+
+    private async Task OpenModal()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+            modal.show();
+        ");
+    }
+
+    private async Task CloseModal()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var modalElement = document.getElementById('scheduleModal');
+            if (modalElement) {
+                var modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        ");
+    }
+
+    private async Task OpenDetailsModal()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            modal.show();
+        ");
+    }
+
+    private async Task CloseDetailsModal()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            var modalElement = document.getElementById('detailsModal');
+            if (modalElement) {
+                var modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        ");
+    }
+
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+

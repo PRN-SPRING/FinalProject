@@ -1,0 +1,311 @@
+﻿@page "/doctor/appointments"
+@rendermode InteractiveServer
+@using Repository.Interface
+@using Data.DTOs
+@using System.Security.Claims
+@using Microsoft.Extensions.Logging
+@inject IAppointmentRepository AppointmentRepository
+@inject IAppointmentDetailRepository AppointmentDetailRepository
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject ILogger<DoctorHomepage> Logger
+@layout FinalProject.Components.Layout.LandingLayout.Landing1
+<PageTitle>Home - My Appointments</PageTitle>
+
+<h3>Welcome to the Appointment System</h3>
+
+@if (appointments == null)
+{
+    <p>Loading appointments...</p>
+}
+else if (!appointments.Any())
+{
+    <p>You have no upcoming appointments.</p>
+}
+else
+{
+    <h4>Your Upcoming Appointments</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Child Name</th>
+                <th>Appointment Date</th>
+                <th>Vaccine</th>
+                <th>Vaccine Package</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appointment in appointments)
+            {
+                <tr>
+                    <td>@appointment.ChildName</td>
+                    <td>@appointment.AppointmentDate.ToShortDateString()</td>
+                    <td>@appointment.VaccineName</td>
+                    <td>@appointment.VaccinePackageName</td>
+                    <td>@appointment.Status</td>
+                    <td>@appointment.Notes</td>
+                    <td>
+                        <button class="btn btn-info btn-sm"
+                                @onclick="() => ShowAppointmentDetails(appointment.Id)">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a class="btn btn-primary" href="/doctor/create-appointment">Create a New Appointment</a>
+
+<!-- Appointment Details Modal -->
+@if (showModal)
+{
+    <div class="modal fade show" style="display:block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Appointment Details</h5>
+                    <button type="button" class="close" @onclick="CloseModal">
+                        <span>×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @if (selectedAppointment == null)
+                    {
+                        <p>No appointment data available.</p>
+                    }
+                    else
+                    {
+                        @if (isEditing)
+                        {
+                            <EditForm Model="editModel" OnValidSubmit="SaveChanges">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary />
+                                <p><strong>Child Name:</strong> @selectedAppointment.ChildName</p>
+                                <p><strong>Date:</strong> @selectedAppointment.AppointmentDate.ToShortDateString()</p>
+                                <p><strong>Vaccine:</strong> @(selectedAppointment.VaccineName ?? "N/A")</p>
+                                <p><strong>Package:</strong> @(selectedAppointment.VaccinePackageName ?? "N/A")</p>
+                                <div class="form-group">
+                                    <label><strong>Appointment Status:</strong></label>
+                                    <InputSelect @bind-Value="selectedAppointment.Status" class="form-control">
+                                        <option value="Created_Urgent">Created_Urgent</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="() => selectedAppointment.Status" />
+                                </div>
+                                @if (selectedAppointmentDetails != null)
+                                {
+                                    <div class="form-group">
+                                        <label><strong>Detail Status:</strong></label>
+                                        <InputSelect @bind-Value="selectedAppointmentDetails.Status" class="form-control">
+                                            <option value="Created_Urgent">Created_Urgent</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="cancelled">Cancelled</option>
+                                        </InputSelect>
+                                        <ValidationMessage For="() => selectedAppointmentDetails.Status" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label><strong>Diagnosis:</strong></label>
+                                        <InputText @bind-Value="selectedAppointmentDetails.Diagnosis" class="form-control" />
+                                        <ValidationMessage For="() => selectedAppointmentDetails.Diagnosis" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label><strong>Treatment:</strong></label>
+                                        <InputText @bind-Value="selectedAppointmentDetails.Treatment" class="form-control" />
+                                        <ValidationMessage For="() => selectedAppointmentDetails.Treatment" />
+                                    </div>
+                                }
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                </div>
+                            </EditForm>
+                        }
+                        else
+                        {
+                            <p><strong>Child Name:</strong> @selectedAppointment.ChildName</p>
+                            <p><strong>Date:</strong> @selectedAppointment.AppointmentDate.ToShortDateString()</p>
+                            <p><strong>Vaccine:</strong> @(selectedAppointment.VaccineName ?? "N/A")</p>
+                            <p><strong>Package:</strong> @(selectedAppointment.VaccinePackageName ?? "N/A")</p>
+                            <p><strong>Status:</strong> @selectedAppointment.Status</p>
+                            @if (selectedAppointmentDetails == null)
+                            {
+                                <p>No additional details available.</p>
+                            }
+                            else
+                            {
+                                <p><strong>Doctor:</strong> @(selectedAppointmentDetails.DoctorName ?? "N/A")</p>
+                                <p><strong>Status:</strong> @selectedAppointmentDetails.Status</p>
+                                <p><strong>Diagnosis:</strong> @(selectedAppointmentDetails.Diagnosis ?? "N/A")</p>
+                                <p><strong>Treatment:</strong> @(selectedAppointmentDetails.Treatment ?? "N/A")</p>
+                            }
+                        }
+                    }
+                </div>
+                @if (!isEditing)
+                {
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @onclick="StartEdit">Edit</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show" @onclick="CloseModal"></div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@code {
+    private List<AppointmentDTO> appointments = new List<AppointmentDTO>();
+    private AppointmentDTO? selectedAppointment;
+    private AppointmentDetailDTO? selectedAppointmentDetails;
+    private string errorMessage = "";
+    private bool showModal = false;
+    private bool isEditing = false;
+
+    // Dummy model for EditForm to satisfy Blazor's requirement
+    private object editModel = new object();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Logger.LogInformation("Loading appointments...");
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userId = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (!string.IsNullOrEmpty(userId))
+            {
+                appointments = await AppointmentRepository.GetAppointmentsByDoctorIdAsync(int.Parse(userId));
+                Logger.LogInformation($"Loaded {appointments.Count} appointments for doctor ID: {userId}");
+            }
+            else
+            {
+                Logger.LogWarning("No user ID found in authentication state");
+                errorMessage = "User not authenticated";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading appointments");
+            errorMessage = "Failed to load appointments";
+        }
+    }
+
+    private async Task ShowAppointmentDetails(int appointmentId)
+    {
+        try
+        {
+            Logger.LogInformation($"Showing details for appointment ID: {appointmentId}");
+            selectedAppointment = appointments.FirstOrDefault(a => a.Id == appointmentId);
+            if (selectedAppointment == null)
+            {
+                Logger.LogWarning($"Appointment with ID {appointmentId} not found");
+                errorMessage = "Appointment not found";
+                return;
+            }
+
+            selectedAppointmentDetails = await AppointmentDetailRepository.GetAppointmentDetailByAppointmentIdAsync(appointmentId);
+            if (selectedAppointmentDetails == null)
+            {
+                Logger.LogWarning($"No details found for appointment ID: {appointmentId}");
+            }
+
+            showModal = true;
+            isEditing = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error loading details for appointment ID: {appointmentId}");
+            errorMessage = "Failed to load appointment details";
+            showModal = false;
+            StateHasChanged();
+        }
+    }
+
+    private void StartEdit()
+    {
+        isEditing = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveChanges()
+    {
+        try
+        {
+            if (selectedAppointment != null)
+            {
+                // Sync AppointmentDetail status with Appointment status if applicable
+                if (selectedAppointmentDetails != null)
+                {
+                    if (selectedAppointment.Status == "completed" || selectedAppointment.Status == "cancelled")
+                    {
+                        selectedAppointmentDetails.Status = selectedAppointment.Status;
+                    }
+                }
+
+                await AppointmentRepository.UpdateAppointmentAsync(selectedAppointment);
+                Logger.LogInformation($"Updated appointment ID: {selectedAppointment.Id}");
+
+                if (selectedAppointmentDetails != null)
+                {
+                    await AppointmentDetailRepository.UpdateAppointmentDetailAsync(selectedAppointmentDetails);
+                    Logger.LogInformation($"Updated appointment detail ID: {selectedAppointmentDetails.Id}");
+                }
+
+                // Refresh the appointments list
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var userId = authState.User.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    appointments = await AppointmentRepository.GetAppointmentsByDoctorIdAsync(int.Parse(userId));
+                }
+
+                isEditing = false;
+                errorMessage = "Changes saved successfully";
+                showModal = false; // Close modal after saving
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving appointment changes");
+            errorMessage = "Failed to save changes: " + ex.Message;
+            StateHasChanged();
+        }
+    }
+
+    private void CancelEdit()
+    {
+        isEditing = false;
+        // Reload original data to discard changes
+        if (selectedAppointment != null)
+        {
+            ShowAppointmentDetails(selectedAppointment.Id);
+        }
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        Logger.LogInformation("Closing modal");
+        selectedAppointment = null;
+        selectedAppointmentDetails = null;
+        errorMessage = "";
+        showModal = false;
+        isEditing = false;
+        StateHasChanged();
+    }
+}
