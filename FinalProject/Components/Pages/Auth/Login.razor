@@ -84,7 +84,7 @@
                 errorMessage = "Authentication failed: HttpContext is unavailable.";
             }
             if(user.Role == "Staff"){
-                navigation.NavigateTo("/staff/home");
+                navigation.NavigateTo("/staff/manage-appointment");
             }
             else if(user.Role == "Doctor"){
                 navigation.NavigateTo("/doctor/appointments");

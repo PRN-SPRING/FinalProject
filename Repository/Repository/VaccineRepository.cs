@@ -90,6 +90,7 @@ namespace Repository.Repository
                 using (var db = new PRNFinalProjectDBContext())
                 {
                     return await db.Vaccines
+                        .OrderByDescending(vp => vp.Id)
                         .Select(vaccine => MapToDTO(vaccine))
                         .ToListAsync();
                 }

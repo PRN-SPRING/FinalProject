@@ -23,7 +23,7 @@ namespace Repository.Repository
         public async Task<FeedbackDTO> GetFeedbackByIdAsync(int id)
         {
             var feedback = await _context.Feedbacks
-                .Include(f => f.Customer) 
+                .Include(f => f.Customer)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (feedback == null) return null;
@@ -41,23 +41,35 @@ namespace Repository.Repository
 
         public async Task<IEnumerable<FeedbackDTO>> GetAllFeedbacksAsync()
         {
-            var feedbacks = await _context.Feedbacks.Include(f => f.Customer).ToListAsync();
-            var feedbackDTOs = new List<FeedbackDTO>();
-
-            foreach (var feedback in feedbacks)
+            try
             {
-                feedbackDTOs.Add(new FeedbackDTO
+                using (var _context = new PRNFinalProjectDBContext())
                 {
-                    Id = feedback.Id,
-                    AppointmentId = feedback.AppointmentId,
-                    CustomerId = feedback.CustomerId,
-                    CustomerName = feedback.Customer?.FullName,
-                    Rating = feedback.Rating,
-                    Comments = feedback.Comments
-                });
-            }
+                    var feedbacks = await _context.Feedbacks
+                        .Include(f => f.Customer)
+                        .ToListAsync();
+                    var feedbackDTOs = new List<FeedbackDTO>();
 
-            return feedbackDTOs;
+                    foreach (var feedback in feedbacks)
+                    {
+                        feedbackDTOs.Add(new FeedbackDTO
+                        {
+                            Id = feedback.Id,
+                            AppointmentId = feedback.AppointmentId,
+                            CustomerId = feedback.CustomerId,
+                            CustomerName = feedback.Customer?.FullName,
+                            Rating = feedback.Rating,
+                            Comments = feedback.Comments
+                        });
+                    }
+
+                    return feedbackDTOs;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error getting all feedbacks", ex);
+            }
         }
 
         public async Task AddFeedbackAsync(FeedbackDTO feedbackDTO)
@@ -91,14 +103,24 @@ namespace Repository.Repository
 
         public async Task<bool> DeleteFeedbackAsync(int feedbackId)
         {
-            var feedback = await _context.Feedbacks.FindAsync(feedbackId);
-            if (feedback != null)
+            try
             {
-                _context.Feedbacks.Remove(feedback);
-                await _context.SaveChangesAsync();
-                return true;
+                using (var _context = new PRNFinalProjectDBContext())
+                {
+                    var feedback = await _context.Feedbacks.FindAsync(feedbackId);
+                    if (feedback != null)
+                    {
+                        _context.Feedbacks.Remove(feedback);
+                        await _context.SaveChangesAsync();
+                        return true;
+                    }
+                    return false;
+                }
             }
-            return false;
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error deleting feedback", ex);
+            }
         }
 
     }
