@@ -1,7 +1,9 @@
 ﻿@page "/admin/user/delete"
+@attribute [Authorize(Roles = "Admin")]
 @using Microsoft.EntityFrameworkCore
-@using Data.Entities
-@inject IDbContextFactory<Data.PRNFinalProjectDBContext> DbFactory
+@using Data.DTOs
+@using Repository.Interface
+@inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
 @layout FinalProject.Components.Layout.AdminLayout.AdminMainLayout
 <PageTitle>Delete</PageTitle>
@@ -16,7 +18,8 @@
     {
         <p><em>Loading...</em></p>
     }
-    else {
+    else
+    {
         <dl class="row">
             <dt class="col-sm-2">Username</dt>
             <dd class="col-sm-10">@user.Username</dd>
@@ -71,33 +74,25 @@
         </dl>
         <EditForm method="post" Model="user" OnValidSubmit="DeleteUser" FormName="delete" Enhance>
             <button type="submit" class="btn btn-danger" disabled="@(user is null)">Delete</button> |
-            <a href="/admin">Back to List</a>
+            <a href="/users">Back to List</a>
         </EditForm>
     }
 </div>
 
 @code {
-    private User? user;
+    private UserInfoDTO? user;
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        user = await context.Users.FirstOrDefaultAsync(m => m.Id == Id);
-
-        if (user is null)
-        {
-            NavigationManager.NavigateTo("notfound");
-        }
+        user = await UserRepository.GetByIdAsync(Id);
     }
 
     private async Task DeleteUser()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Users.Remove(user!);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/users");
+        await UserRepository.DeleteUserAsync(Id);
+        NavigationManager.NavigateTo("/admin");
     }
 }
