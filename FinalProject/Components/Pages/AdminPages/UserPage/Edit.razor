@@ -1,9 +1,12 @@
-﻿@page "/admin/user/edit"
+﻿@page "/admin/user/edit/"
+@attribute [Authorize(Roles = "Admin")]
 @using Microsoft.EntityFrameworkCore
-@using Data.Entities
-@inject IDbContextFactory<Data.PRNFinalProjectDBContext> DbFactory
+@using Data.DTOs
+@using Repository.Interface
+@inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
 @layout FinalProject.Components.Layout.AdminLayout.AdminMainLayout
+@rendermode InteractiveServer
 <PageTitle>Edit</PageTitle>
 
 <h1>Edit</h1>
@@ -20,17 +23,12 @@ else
         <div class="col-md-4">
             <EditForm method="post" Model="User" OnValidSubmit="UpdateUser" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
+                <ValidationSummary role="alert" />
                 <input type="hidden" name="User.Id" value="@User.Id" />
                 <div class="mb-3">
                     <label for="username" class="form-label">Username:</label>
                     <InputText id="username" @bind-Value="User.Username" class="form-control" />
                     <ValidationMessage For="() => User.Username" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password:</label>
-                    <InputText id="password" @bind-Value="User.Password" class="form-control" />
-                    <ValidationMessage For="() => User.Password" class="text-danger" />
                 </div>
                 <div class="mb-3">
                     <label for="fullname" class="form-label">FullName:</label>
@@ -48,18 +46,26 @@ else
                     <ValidationMessage For="() => User.PhoneNumber" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="role" class="form-label">Role:</label>
-                    <InputText id="role" @bind-Value="User.Role" class="form-control" />
-                    <ValidationMessage For="() => User.Role" class="text-danger" />
-                </div>
-                <div class="mb-3">
                     <label for="address" class="form-label">Address:</label>
                     <InputText id="address" @bind-Value="User.Address" class="form-control" />
                     <ValidationMessage For="() => User.Address" class="text-danger" />
                 </div>
                 <div class="mb-3">
+                    <label for="role" class="form-label">Role:</label>
+                    <InputSelect id="role" @bind-Value="User.Role" class="form-control">
+                        <option value="">-- Select Role --</option>
+                        <option value="Doctor" selected="@(User.Role == "Doctor")">Doctor</option>
+                        <option value="Staff" selected="@(User.Role == "Staff")">Staff</option>
+                    </InputSelect>
+                    <ValidationMessage For="() => User.Role" class="text-danger" />
+                </div>
+                <div class="mb-3">
                     <label for="gender" class="form-label">Gender:</label>
-                    <InputText id="gender" @bind-Value="User.Gender" class="form-control" />
+                    <InputSelect id="gender" @bind-Value="User.Gender" class="form-control">
+                        <option value="">-- Select Gender --</option>
+                        <option value="Male" selected="@(User.Gender == "Male")">Male</option>
+                        <option value="Female" selected="@(User.Gender == "Female")">Female</option>
+                    </InputSelect>
                     <ValidationMessage For="() => User.Gender" class="text-danger" />
                 </div>
                 <div class="mb-3">
@@ -94,7 +100,7 @@ else
 }
 
 <div>
-    <a href="/users">Back to List</a>
+    <a href="/admin">Back to List</a>
 </div>
 
 @code {
@@ -102,16 +108,23 @@ else
     private int Id { get; set; }
 
     [SupplyParameterFromForm]
-    private User? User { get; set; }
+    private UserInfoDTO User { get; set; }
+
+    private string selectedRole = string.Empty;
+
+    private string selectedGender = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        User ??= await context.Users.FirstOrDefaultAsync(m => m.Id == Id);
-
-        if (User is null)
+        User = await UserRepository.GetByIdAsync(Id);
+        if (!string.IsNullOrEmpty(User.Role))
         {
-            NavigationManager.NavigateTo("notfound");
+            selectedRole = User.Role;
+        }
+        // Set the initial selected gender
+        if (!string.IsNullOrEmpty(User.Gender))
+        {
+            selectedGender = User.Gender;
         }
     }
 
@@ -119,31 +132,7 @@ else
     // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task UpdateUser()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(User!).State = EntityState.Modified;
-
-        try
-        {
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!UserExists(User!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        NavigationManager.NavigateTo("/users");
-    }
-
-    private bool UserExists(int id)
-    {
-        using var context = DbFactory.CreateDbContext();
-        return context.Users.Any(e => e.Id == id);
+        await UserRepository.UpdateUserAsync(User);
+        NavigationManager.NavigateTo("/admin");
     }
 }
