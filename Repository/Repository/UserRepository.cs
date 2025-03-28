@@ -17,6 +17,10 @@ using Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Data.DTOs;
+using System.Data;
+using System.Net;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace Repository.Repository
 {
@@ -38,6 +42,43 @@ namespace Repository.Repository
                 .FirstOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
         }
 
+        public async Task DeleteUserAsync(int id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpdateUserAsync(UserInfoDTO user)
+        {
+            var updateUser = _context.Users.FirstOrDefault(u => u.Id == user.Id);
+            if (updateUser != null)
+            {
+                updateUser.Username = user.Username ?? updateUser.Username;
+                updateUser.FullName = user.FullName ?? updateUser.FullName;
+                updateUser.Email = user.Email ?? updateUser.Email;
+                updateUser.Role = user.Role ?? updateUser.Role;
+
+                // Nullable fields can be updated directly
+                updateUser.PhoneNumber = user.PhoneNumber;
+                updateUser.Address = user.Address;
+                updateUser.Gender = user.Gender;
+                updateUser.Birthdate = user.Birthdate;
+                updateUser.Specialty = user.Specialty;
+                updateUser.LicenseNumber = user.LicenseNumber;
+                updateUser.Position = user.Position;
+                updateUser.YearsOfExperience = user.YearsOfExperience;
+
+                Debug.WriteLine(updateUser.LicenseNumber);
+                Debug.WriteLine(user.LicenseNumber);
+
+                _context.Users.Update(updateUser);
+                await _context.SaveChangesAsync();
+            }
+        }
         public async Task<UserInfoDTO> GetByIdAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -92,7 +133,7 @@ namespace Repository.Repository
         }
 
 
-        public async Task<User> CreateUserAsync(string username, string password,
+        public async Task CreateUserAsync(string username, string password,
                 string fullName, string email, string? phoneNumber,
                 string? address, string? gender, string role, DateTime? birthdate)
         {
@@ -146,8 +187,39 @@ namespace Repository.Repository
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new InvalidOperationException("Error creating user in database", ex);
+            }
+        }
 
-                return user;
+        public async Task CreateEmployeeUserAsync(UserInfoDTO user)
+        {
+            var newUser = new User();
+            try
+            {
+                newUser.Username = user.Username;
+                newUser.Password = user.Password; // Ensure this is hashed before storing!
+                newUser.FullName = user.FullName;
+                newUser.Email = user.Email;
+                newUser.PhoneNumber = user.PhoneNumber;
+                newUser.Role = user.Role;
+                newUser.Address = user.Address;
+                newUser.Gender = user.Gender;
+                newUser.Birthdate = user.Birthdate;
+                newUser.Specialty = user.Specialty;
+                newUser.LicenseNumber = user.LicenseNumber;
+                newUser.Position = user.Position;
+                newUser.YearsOfExperience = user.YearsOfExperience;
+
+                // Initialize navigation properties to prevent null reference issues
+                newUser.Children = new List<Child>();
+                newUser.Appointments = new List<Appointment>();
+                newUser.AppointmentDetails = new List<AppointmentDetail>();
+                newUser.Feedbacks = new List<Feedback>();
+                _context.Users.Add(newUser);
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)
             {
@@ -177,36 +249,41 @@ namespace Repository.Repository
                 .ToListAsync();
         }
 
+        public async Task<List<User>> GetEmployeeUserAsync(string[]? roles = null)
+        {
+            if (roles == null || roles.Length == 0)
+            {
+                return await _context.Users.ToListAsync();
+            }
+
+            // Convert roles to lowercase for case-insensitive comparison
+            var lowercaseRoles = roles.Select(r => r.ToLower()).ToArray();
+
+            return await _context.Users
+                .Where(u => lowercaseRoles.Contains(u.Role.ToLower()))
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<UserInfoDTO>> GetAllUsers()
         {
-            try
-            {
-                using (var _context = new PRNFinalProjectDBContext())
-                {
-                    var users = await _context.Users.ToListAsync();
+            var users = await _context.Users.ToListAsync();
 
-                    return users.Select(user => new UserInfoDTO
-                    {
-                        Id = user.Id,
-                        Username = user.Username,
-                        FullName = user.FullName,
-                        Email = user.Email,
-                        PhoneNumber = user.PhoneNumber,
-                        Role = user.Role,
-                        Address = user.Address,
-                        Gender = user.Gender,
-                        Birthdate = user.Birthdate,
-                        Specialty = user.Specialty,
-                        LicenseNumber = user.LicenseNumber,
-                        Position = user.Position,
-                        YearsOfExperience = user.YearsOfExperience
-                    });
-                }
-            }
-            catch (Exception ex)
+            return users.Select(user => new UserInfoDTO
             {
-                throw new InvalidOperationException("Error getting all users", ex);
-            }
+                Id = user.Id,
+                Username = user.Username,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                Address = user.Address,
+                Gender = user.Gender,
+                Birthdate = user.Birthdate,
+                Specialty = user.Specialty,
+                LicenseNumber = user.LicenseNumber,
+                Position = user.Position,
+                YearsOfExperience = user.YearsOfExperience
+            });
         }
 
         public async Task<List<UserInfoDTO>> GetAllUsersAsync()
