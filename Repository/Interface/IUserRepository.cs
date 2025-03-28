@@ -13,7 +13,7 @@ namespace Repository.Interface
         Task<User> GetByUsernameAsync(string username);
         Task<UserInfoDTO> GetByIdAsync(int id);
         Task<bool> AuthenticateAsync(string username, string password);
-        Task<User> CreateUserAsync(string username, string password,
+        Task CreateUserAsync(string username, string password,
                 string fullName, string email, string? phoneNumber,
                 string? address, string? gender, string role, DateTime? birthdate);
         Task<bool> UsernameExistsAsync(string username);
@@ -24,6 +24,7 @@ namespace Repository.Interface
 
         Task<List<UserInfoDTO>> GetAllUsersAsync();
 
-        Task DeleteUserAsync(int id)
+        Task<List<User>> GetEmployeeUserAsync(string[]? roles = null);
+        Task DeleteUserAsync(int id);
     }
 }
