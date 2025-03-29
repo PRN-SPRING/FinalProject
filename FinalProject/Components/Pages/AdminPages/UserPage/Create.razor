@@ -127,7 +127,7 @@
 
 @code {
     [SupplyParameterFromForm]
-    private UserInfoDTO User { get; set; } = new();
+    private UserInfoDTO User { get; set; } = new UserInfoDTO();
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddUser()
