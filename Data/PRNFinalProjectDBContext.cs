@@ -1,4 +1,4 @@
-﻿using Data.Entities;
+﻿using BussinessObject.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;

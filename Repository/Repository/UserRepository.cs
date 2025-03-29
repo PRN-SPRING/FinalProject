@@ -1,25 +1,11 @@
 ﻿using Data;
-using Data;
-using Data.DTOs;
-using Data.Entities;
-using Data.Entities;
+
+using BussinessObject.DTOs;
+using BussinessObject.Entities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Data;
-using Data.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Data.DTOs;
 using System.Data;
-using System.Net;
-using System.Reflection;
 using System.Diagnostics;
 
 namespace Repository.Repository

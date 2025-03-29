@@ -1,9 +1,8 @@
 ﻿@page "/staff/manage-vaccines"
 @attribute [Authorize(Roles = "Staff")]
-@using Data.DTOs
+@using BussinessObject.DTOs
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using Data
 @using Repository
 @using Repository.Interface
 @inject IVaccineRepository VaccineRepository
@@ -164,7 +163,6 @@
 </div>
 
 @code {
-    private PRNFinalProjectDBContext context = default!;
     private string searchQuery = string.Empty;
     private List<VaccineDTO> allVaccines = new();
     private List<VaccineDTO> filteredVaccines = new();

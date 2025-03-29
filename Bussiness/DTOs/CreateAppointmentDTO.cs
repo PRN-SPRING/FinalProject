@@ -1,8 +1,7 @@
-﻿
-using Data.Entities;
+﻿using BussinessObject.Entities;
 using System.ComponentModel.DataAnnotations;
 
-namespace Data.DTOs
+namespace BussinessObject.DTOs
 {
     public class CreateAppointmentDTO
     {

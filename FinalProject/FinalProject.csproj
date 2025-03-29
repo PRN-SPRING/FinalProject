@@ -21,6 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Bussiness\BussinessObject.csproj">
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Repository\Repository.csproj" />
   </ItemGroup>
 

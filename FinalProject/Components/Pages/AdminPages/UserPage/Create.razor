@@ -1,7 +1,7 @@
 ﻿@page "/admin/user/create"
 @attribute [Authorize(Roles = "Admin")]
 @using Microsoft.EntityFrameworkCore
-@using Data.DTOs
+@using BussinessObject.DTOs
 @using Repository.Interface
 @inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager

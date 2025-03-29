@@ -6,21 +6,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Data.Entities
+namespace BussinessObject.Entities
 {
-    public class AppointmentDetail
+    public class Payment
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public int AppointmentId { get; set; }
-        public int DoctorId { get; set; }
+        public decimal Amount { get; set; }
+        public string PaymentMethod { get; set; } = null!;
         public string Status { get; set; } = null!;
-        public string? Diagnosis { get; set; }
-        public string? Treatment { get; set; }
+        public DateTime? PaymentDate { get; set; }
         public Appointment Appointment { get; set; } = null!;
-        public User Doctor { get; set; } = null!;
-        
     }
 
 }

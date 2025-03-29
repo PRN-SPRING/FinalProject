@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Data.Entities
+namespace BussinessObject.Entities
 {
     public class VaccinePackageDetail
     {

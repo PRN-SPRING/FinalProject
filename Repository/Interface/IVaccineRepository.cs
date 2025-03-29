@@ -1,4 +1,4 @@
-﻿using Data.DTOs;
+﻿using BussinessObject.DTOs;
 
 namespace Repository.Interface
 {

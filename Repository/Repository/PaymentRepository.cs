@@ -1,5 +1,5 @@
 ﻿using Data;
-using Data.Entities;
+using BussinessObject.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interface;
 using System;

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Data.Entities
+namespace BussinessObject.Entities
 {
     public class VaccinePackage
     {
@@ -18,7 +18,7 @@ namespace Data.Entities
         public decimal Price { get; set; }
         public ICollection<VaccinePackageDetail>? PackageDetails { get; set; }
         public ICollection<Appointment>? Appointments { get; set; }
-        public ICollection<VaccinationSchedule>? VaccinationSchedules{ get; set; }
+        public ICollection<VaccinationSchedule>? VaccinationSchedules { get; set; }
 
     }
 }

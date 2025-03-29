@@ -1,7 +1,7 @@
 ﻿@page "/staff/vaccinepackages/create"
 @attribute [Authorize(Roles = "Staff")]
 @using Microsoft.EntityFrameworkCore
-@using Data.DTOs
+@using BussinessObject.DTOs
 @using Repository.Interface
 @inject IVaccinePackageRepository VaccinePackageRepository
 @inject IVaccineRepository VaccineRepository

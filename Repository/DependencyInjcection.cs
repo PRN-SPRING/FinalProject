@@ -1,4 +1,4 @@
-﻿using Data.Entities;
+﻿using BussinessObject.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Repository.Interface;

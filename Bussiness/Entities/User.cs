@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-namespace Data.Entities
+namespace BussinessObject.Entities
 {
     public class User
     {

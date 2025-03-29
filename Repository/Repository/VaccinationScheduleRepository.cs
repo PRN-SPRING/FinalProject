@@ -1,6 +1,6 @@
 ﻿using Data;
-using Data.DTOs;
-using Data.Entities;
+using BussinessObject.DTOs;
+using BussinessObject.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interface;
 

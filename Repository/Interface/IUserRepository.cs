@@ -1,5 +1,5 @@
-﻿using Data.DTOs;
-using Data.Entities;
+﻿using BussinessObject.DTOs;
+using BussinessObject.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

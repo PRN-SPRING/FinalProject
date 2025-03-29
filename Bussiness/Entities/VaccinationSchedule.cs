@@ -1,33 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Data.DTOs
+namespace BussinessObject.Entities
 {
-    public class VaccinationScheduleDTO
+    public class VaccinationSchedule
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
-        [Required(ErrorMessage = "Child ID is required")]
         public int ChildId { get; set; }
-
         public int? VaccineId { get; set; }
-
         public int? VaccinePackageId { get; set; }
-
-        [Required(ErrorMessage = "Scheduled Date is required")]
         public DateTime ScheduledDate { get; set; }
-
-        [Required(ErrorMessage = "Status is required")]
-        [StringLength(50, ErrorMessage = "Status can't be longer than 50 characters")]
         public string Status { get; set; } = null!;
+        public Child? Child { get; set; } = null!;
+        public Vaccine? Vaccine { get; set; }
+        public VaccinePackage? VaccinePackage { get; set; }
 
-        public string ChildName { get; set; } = null!;
-        public string? VaccineName { get; set; }
-        public string? VaccinePackageName { get; set; }
         public int? AppointmentId { get; set; }
+        public Appointment? Appointment { get; set; }
     }
+
 }

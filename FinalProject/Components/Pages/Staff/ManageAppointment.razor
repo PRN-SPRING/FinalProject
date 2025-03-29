@@ -1,7 +1,7 @@
 ﻿@page "/staff/manage-appointment"
 @attribute [Authorize(Roles = "Staff")]
-@using Data.DTOs
-@using Data.Entities
+@using BussinessObject.DTOs
+@using BussinessObject.Entities
 @using Repository.Interface
 @inject IAppointmentRepository AppointmentRepository
 @inject IAppointmentDetailRepository AppointmentDetailRepository
