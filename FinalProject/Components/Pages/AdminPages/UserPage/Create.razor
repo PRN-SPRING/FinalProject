@@ -74,7 +74,7 @@
             </div>
             <div class="mb-3">
                 <label for="specialty" class="form-label">Specialty:</label>
-                <InputText id="specialty" @bind-value="User.Specialty" class="form-control" />
+                <InputText id="specialty" @bind-Value="User.Specialty" class="form-control" />
                 <ValidationMessage For="() => User.Specialty" class="text-danger" />
             </div>
             <div class="mb-3">
@@ -104,7 +104,7 @@
 
 @code {
     [SupplyParameterFromForm]
-    private UserInfoDTO User { get; set; } = new();
+    private UserInfoDTO User { get; set; } = new UserInfoDTO();
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddUser()
