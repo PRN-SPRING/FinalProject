@@ -9,99 +9,115 @@
 @rendermode InteractiveServer
 <PageTitle>Edit</PageTitle>
 
-<h1>Edit</h1>
+<h1 class="mb-4">Edit User</h1>
 
-<h2>User</h2>
-<hr />
 @if (User is null)
 {
-    <p><em>Loading...</em></p>
+    <p class="text-muted"><em>Loading...</em></p>
 }
 else
 {
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-lg-8 mx-auto">
             <EditForm method="post" Model="User" OnValidSubmit="UpdateUser" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert" />
+                <ValidationSummary class="alert alert-danger" role="alert" />
+
                 <input type="hidden" name="User.Id" value="@User.Id" />
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username:</label>
-                    <InputText id="username" @bind-Value="User.Username" class="form-control" />
-                    <ValidationMessage For="() => User.Username" class="text-danger" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="username" class="form-label fw-bold">Username:</label>
+                        <InputText id="username" @bind-Value="User.Username" class="form-control" />
+                        <ValidationMessage For="() => User.Username" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="fullname" class="form-label fw-bold">Full Name:</label>
+                        <InputText id="fullname" @bind-Value="User.FullName" class="form-control" />
+                        <ValidationMessage For="() => User.FullName" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="email" class="form-label fw-bold">Email:</label>
+                        <InputText id="email" @bind-Value="User.Email" class="form-control" />
+                        <ValidationMessage For="() => User.Email" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="phonenumber" class="form-label fw-bold">Phone Number:</label>
+                        <InputText id="phonenumber" @bind-Value="User.PhoneNumber" class="form-control" />
+                        <ValidationMessage For="() => User.PhoneNumber" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="address" class="form-label fw-bold">Address:</label>
+                        <InputText id="address" @bind-Value="User.Address" class="form-control" />
+                        <ValidationMessage For="() => User.Address" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="role" class="form-label fw-bold">Role:</label>
+                        <InputSelect id="role" @bind-Value="User.Role" class="form-select">
+                            <option value="">-- Select Role --</option>
+                            <option value="Doctor">Doctor</option>
+                            <option value="Staff">Staff</option>
+                        </InputSelect>
+                        <ValidationMessage For="() => User.Role" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="gender" class="form-label fw-bold">Gender:</label>
+                        <InputSelect id="gender" @bind-Value="User.Gender" class="form-select">
+                            <option value="">-- Select Gender --</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </InputSelect>
+                        <ValidationMessage For="() => User.Gender" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="birthdate" class="form-label fw-bold">Birthdate:</label>
+                        <InputDate id="birthdate" @bind-Value="User.Birthdate" class="form-control" />
+                        <ValidationMessage For="() => User.Birthdate" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="specialty" class="form-label fw-bold">Specialty:</label>
+                        <InputText id="specialty" @bind-Value="User.Specialty" class="form-control" />
+                        <ValidationMessage For="() => User.Specialty" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="licensenumber" class="form-label fw-bold">License Number:</label>
+                        <InputText id="licensenumber" @bind-Value="User.LicenseNumber" class="form-control" />
+                        <ValidationMessage For="() => User.LicenseNumber" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="position" class="form-label fw-bold">Position:</label>
+                        <InputText id="position" @bind-Value="User.Position" class="form-control" />
+                        <ValidationMessage For="() => User.Position" class="text-danger" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="yearsofexperience" class="form-label fw-bold">Years of Experience:</label>
+                        <InputNumber id="yearsofexperience" @bind-Value="User.YearsOfExperience" class="form-control" />
+                        <ValidationMessage For="() => User.YearsOfExperience" class="text-danger" />
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="fullname" class="form-label">FullName:</label>
-                    <InputText id="fullname" @bind-Value="User.FullName" class="form-control" />
-                    <ValidationMessage For="() => User.FullName" class="text-danger" />
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="/admin" class="btn btn-outline-secondary">Back to List</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email:</label>
-                    <InputText id="email" @bind-Value="User.Email" class="form-control" />
-                    <ValidationMessage For="() => User.Email" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="phonenumber" class="form-label">PhoneNumber:</label>
-                    <InputText id="phonenumber" @bind-Value="User.PhoneNumber" class="form-control" />
-                    <ValidationMessage For="() => User.PhoneNumber" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="address" class="form-label">Address:</label>
-                    <InputText id="address" @bind-Value="User.Address" class="form-control" />
-                    <ValidationMessage For="() => User.Address" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="role" class="form-label">Role:</label>
-                    <InputSelect id="role" @bind-Value="User.Role" class="form-control">
-                        <option value="">-- Select Role --</option>
-                        <option value="Doctor" selected="@(User.Role == "Doctor")">Doctor</option>
-                        <option value="Staff" selected="@(User.Role == "Staff")">Staff</option>
-                    </InputSelect>
-                    <ValidationMessage For="() => User.Role" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="gender" class="form-label">Gender:</label>
-                    <InputSelect id="gender" @bind-Value="User.Gender" class="form-control">
-                        <option value="">-- Select Gender --</option>
-                        <option value="Male" selected="@(User.Gender == "Male")">Male</option>
-                        <option value="Female" selected="@(User.Gender == "Female")">Female</option>
-                    </InputSelect>
-                    <ValidationMessage For="() => User.Gender" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="birthdate" class="form-label">Birthdate:</label>
-                    <Microsoft.AspNetCore.Components.Forms.InputDate id="birthdate" @bind-Value="User.Birthdate" class="form-control" />
-                    <ValidationMessage For="() => User.Birthdate" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="specialty" class="form-label">Specialty:</label>
-                    <InputText id="specialty" @bind-Value="User.Specialty" class="form-control" />
-                    <ValidationMessage For="() => User.Specialty" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="licensenumber" class="form-label">LicenseNumber:</label>
-                    <InputText id="licensenumber" @bind-Value="User.LicenseNumber" class="form-control" />
-                    <ValidationMessage For="() => User.LicenseNumber" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="position" class="form-label">Position:</label>
-                    <InputText id="position" @bind-Value="User.Position" class="form-control" />
-                    <ValidationMessage For="() => User.Position" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="yearsofexperience" class="form-label">YearsOfExperience:</label>
-                    <InputNumber id="yearsofexperience" @bind-Value="User.YearsOfExperience" class="form-control" />
-                    <ValidationMessage For="() => User.YearsOfExperience" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
         </div>
     </div>
 }
 
-<div>
-    <a href="/admin">Back to List</a>
-</div>
 
 @code {
     [SupplyParameterFromQuery]

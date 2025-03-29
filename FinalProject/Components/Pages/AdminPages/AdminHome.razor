@@ -9,29 +9,33 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>Users</h1>
+<h1>Staff Index</h1>
 
-<p>
-    <a href="users/create">Create New</a>
-</p>
+<QuickGrid Class="table table-striped table-hover table-bordered text-center align-middle" Items="users.AsQueryable()">
+    <PropertyColumn Property="user => user.Username" Title="Username" />
+    <PropertyColumn Property="user => user.FullName" Title="Full Name" />
+    <PropertyColumn Property="user => user.Email" Title="Email" />
+    <PropertyColumn Property="user => user.PhoneNumber" Title="Phone Number" />
+    <PropertyColumn Property="user => user.Role" Title="Role" />
+    <PropertyColumn Property="user => user.Address" Title="Address" />
+    <PropertyColumn Property="user => user.Gender" Title="Gender" />
+    <PropertyColumn Property="user => user.Birthdate" Title="Birthdate" />
+    <PropertyColumn Property="user => user.Specialty" Title="Specialty" />
+    <PropertyColumn Property="user => user.LicenseNumber" Title="License Number" />
+    <PropertyColumn Property="user => user.Position" Title="Position" />
+    <PropertyColumn Property="user => user.YearsOfExperience" Title="Years of Experience" />
 
-<QuickGrid Class="table" Items="users.AsQueryable()">
-    <PropertyColumn Property="user => user.Username" />
-    <PropertyColumn Property="user => user.FullName" />
-    <PropertyColumn Property="user => user.Email" />
-    <PropertyColumn Property="user => user.PhoneNumber" />
-    <PropertyColumn Property="user => user.Role" />
-    <PropertyColumn Property="user => user.Address" />
-    <PropertyColumn Property="user => user.Gender" />
-    <PropertyColumn Property="user => user.Birthdate" />
-    <PropertyColumn Property="user => user.Specialty" />
-    <PropertyColumn Property="user => user.LicenseNumber" />
-    <PropertyColumn Property="user => user.Position" />
-    <PropertyColumn Property="user => user.YearsOfExperience" />
-
-    <TemplateColumn Context="user">
-        <a href="@($"admin/user/edit?id={user.Id}")">Edit</a> |
-        <a href="@($"admin/user/delete?id={user.Id}")" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+    <TemplateColumn Context="user" Title="Actions">
+        <div class="d-flex justify-content-center gap-2">
+            <a href="@($"admin/user/edit?id={user.Id}")" class="btn btn-primary btn-sm">
+                <i class="bi bi-pencil-square"></i> Edit
+            </a>
+            <a href="@($"admin/user/delete?id={user.Id}")"
+               class="btn btn-danger btn-sm"
+               onclick="return confirm('Are you sure you want to delete this user?');">
+                <i class="bi bi-trash-fill"></i> Delete
+            </a>
+        </div>
     </TemplateColumn>
 </QuickGrid>
 

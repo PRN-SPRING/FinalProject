@@ -94,3 +94,65 @@ main {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+
+.content {
+    font-family: 'Arial', sans-serif;
+    font-size: 1.1rem;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+    background: #f8f9fa; /* Light gray background */
+    border-radius: 10px;
+}
+
+    .content h1, .content h2, .content h3 {
+        color: #007bff;
+        font-weight: bold;
+    }
+
+    .content p {
+        margin-bottom: 1rem;
+    }
+
+    .content a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        .content a:hover {
+            text-decoration: underline;
+            color: #0056b3;
+        }
+
+    .content ul, .content ol {
+        padding-left: 20px;
+    }
+
+    .content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .content table, .content th, .content td {
+        border: 1px solid #ddd;
+    }
+
+    .content th, .content td {
+        padding: 10px;
+        text-align: left;
+    }
+
+    .content th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .content blockquote {
+        padding: 10px 20px;
+        margin: 1rem 0;
+        background: #e9ecef;
+        border-left: 5px solid #007bff;
+        font-style: italic;
